@@ -2,9 +2,12 @@
   "name": "furniture_backend",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest",
+    "dev": "nodemon src/index.ts",
+    "build": "tsc -p",
+    "start": "node dist/src/index.js"
   },
   "keywords": [],
   "author": "",
