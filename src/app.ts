@@ -5,7 +5,7 @@ import cors from "cors";
 import morgan from "morgan";
 
 export const app =express();
-app.use(morgan("dev"));
-app.use(urlencoded({ extended: true }));
-app.use(express.json());
-app.use(cors());
+app.use(morgan("dev"))
+   .use(urlencoded({ extended: true }))
+   .use(express.json())
+   .use(cors())
