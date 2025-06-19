@@ -1,4 +1,4 @@
-import express, { urlencoded } from "express";
+import express, { NextFunction, urlencoded } from "express";
 import { Response, Request } from "express";
 import helmet from "helmet";
 import compression from "compression";
@@ -21,8 +21,16 @@ interface CustomRequest extends Request {
   userId?: number;
 }
 app.get("/health", check, (req: CustomRequest, res: Response) => {
+  throw new Error("new error occur");
   res.status(200).json({
     mesage: "Server is running fine!",
     user: req.userId,
   });
+});
+
+app.use((error: any, req: CustomRequest, res: Response, next: NextFunction) => {
+const status =error.status || 500;
+const message =error.message || " Server Error";
+const errorCode =error.code || "Error_Code";
+res.status(status).json({message,error:errorCode});
 });
