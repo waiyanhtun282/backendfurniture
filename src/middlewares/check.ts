@@ -7,10 +7,7 @@ export const check  = (
     res:Response,
     next:NextFunction
 ) => {
-    // const err:any =new Error("Token has expired");
-    // err.status =401;
-    // err.code ="Token_Expired";
-    // return next(err);
+    
     req.userId=12345;
     next();
 
