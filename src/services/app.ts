@@ -1,11 +1,11 @@
-import express, {  urlencoded } from "express";
-import { Response, Request ,NextFunction} from "express";
+import express, { urlencoded } from "express";
+import { Response, Request, NextFunction } from "express";
 import helmet from "helmet";
 import compression from "compression";
 import cors from "cors";
 import morgan from "morgan";
-import { limiter } from "./middlewares/rateLimiter";
-import healthRouter from "./routes/v1/health";
+import { limiter } from "../middlewares/rateLimiter";
+import healthRouter from "../routes/v1/health";
 export const app = express();
 app
   .use(morgan("dev"))
@@ -15,11 +15,11 @@ app
   .use(helmet())
   .use(compression())
   .use(limiter);
-  interface CutomerRequest extends Request {
-    userId?: number;
-  };
-  
-app.use("/api/v1",healthRouter);
+interface CutomerRequest extends Request {
+  userId?: number;
+}
+
+app.use("/api/v1", healthRouter);
 
 app.use(
   (error: any, req: CutomerRequest, res: Response, next: NextFunction) => {
