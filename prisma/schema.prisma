@@ -147,7 +147,7 @@ model Otp {
   phone         String   @db.VarChar(15)
   otp           String   @db.VarChar(6)
   rememberToken String 
-  verifyToken   String?
+  verifyToken  String?
   count         Int      @default(0) @db.SmallInt
   error         Int      @default(0) @db.SmallInt
   createdAt     DateTime @default(now())
