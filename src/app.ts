@@ -7,6 +7,8 @@ import morgan from "morgan";
 import { limiter } from "./middlewares/rateLimiter";
 import healthRouter from "./routes/v1/health";
 import ViewRoutes   from "./routes/v1/web/view";
+import * as errorController from "./controllers/web/errorController";
+
 export const app = express();
 
 app.set('view engine', 'ejs');
@@ -24,8 +26,12 @@ interface CutomerRequest extends Request {
   userId?: number;
 }
 
+app.use(express.static("public"));
+
 app.use("/api/v1", healthRouter);
 app.use( ViewRoutes);
+app.use(errorController.notFound);
+
 
 app.use(
   (error: any, req: CutomerRequest, res: Response, next: NextFunction) => {

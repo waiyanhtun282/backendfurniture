@@ -5,4 +5,5 @@ import { healthCheck } from "../../controllers/healthContollers";
 const router =express.Router();
 
 router.get("/health",check,healthCheck);
+
 export default router;
