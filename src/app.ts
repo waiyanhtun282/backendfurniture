@@ -5,9 +5,11 @@ import compression from "compression";
 import cors from "cors";
 import morgan from "morgan";
 import { limiter } from "./middlewares/rateLimiter";
-import healthRouter from "./routes/v1/health";
+import healthRoutes from "./routes/v1/health";
+import authRoutes from "./routes/v1/auth";
+
 import ViewRoutes   from "./routes/v1/web/view";
-import * as errorController from "./controllers/web/errorController";
+// import * as errorController from "./controllers/web/errorController";
 
 export const app = express();
 
@@ -28,9 +30,11 @@ interface CutomerRequest extends Request {
 
 app.use(express.static("public"));
 
-app.use("/api/v1", healthRouter);
+app.use("/api/v1", healthRoutes);
 app.use( ViewRoutes);
-app.use(errorController.notFound);
+app.use("/api/v1",authRoutes);
+
+// app.use(errorController.notFound);
 
 
 app.use(
