@@ -125,9 +125,31 @@ exports.Prisma.CategoryScalarFieldEnum = {
   name: 'name'
 };
 
-exports.Prisma.TypeScalarFieldEnum = {
+exports.Prisma.ImageScalarFieldEnum = {
   id: 'id',
-  name: 'name'
+  path: 'path',
+  productId: 'productId'
+};
+
+exports.Prisma.OrderScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  code: 'code',
+  totalPrice: 'totalPrice',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.OtpScalarFieldEnum = {
+  id: 'id',
+  phone: 'phone',
+  otp: 'otp',
+  rememberToken: 'rememberToken',
+  verifyToken: 'verifyToken',
+  count: 'count',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  error: 'error'
 };
 
 exports.Prisma.PostScalarFieldEnum = {
@@ -159,10 +181,29 @@ exports.Prisma.ProductScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
-exports.Prisma.ImageScalarFieldEnum = {
+exports.Prisma.ProductsOnOrderScalarFieldEnum = {
   id: 'id',
-  path: 'path',
-  productId: 'productId'
+  orderId: 'orderId',
+  productId: 'productId',
+  quantity: 'quantity',
+  price: 'price'
+};
+
+exports.Prisma.TagScalarFieldEnum = {
+  id: 'id',
+  name: 'name'
+};
+
+exports.Prisma.TaggableScalarFieldEnum = {
+  id: 'id',
+  tagId: 'tagId',
+  typeId: 'typeId',
+  type: 'type'
+};
+
+exports.Prisma.TypeScalarFieldEnum = {
+  id: 'id',
+  name: 'name'
 };
 
 exports.Prisma.UserScalarFieldEnum = {
@@ -178,47 +219,6 @@ exports.Prisma.UserScalarFieldEnum = {
   errorLoginCount: 'errorLoginCount',
   randomToken: 'randomToken',
   image: 'image',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-};
-
-exports.Prisma.TagScalarFieldEnum = {
-  id: 'id',
-  name: 'name'
-};
-
-exports.Prisma.TaggableScalarFieldEnum = {
-  id: 'id',
-  tagId: 'tagId',
-  typeId: 'typeId',
-  type: 'type'
-};
-
-exports.Prisma.OrderScalarFieldEnum = {
-  id: 'id',
-  userId: 'userId',
-  code: 'code',
-  totalPrice: 'totalPrice',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-};
-
-exports.Prisma.ProductsOnOrderScalarFieldEnum = {
-  id: 'id',
-  orderId: 'orderId',
-  productId: 'productId',
-  quantity: 'quantity',
-  price: 'price'
-};
-
-exports.Prisma.OtpScalarFieldEnum = {
-  id: 'id',
-  phone: 'phone',
-  otp: 'otp',
-  rememberToken: 'rememberToken',
-  verifyToken: 'verifyToken',
-  count: 'count',
-  error: 'error',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -251,16 +251,16 @@ exports.Role = exports.$Enums.Role = {
 
 exports.Prisma.ModelName = {
   Category: 'Category',
-  Type: 'Type',
+  Image: 'Image',
+  Order: 'Order',
+  Otp: 'Otp',
   Post: 'Post',
   Product: 'Product',
-  Image: 'Image',
-  User: 'User',
+  ProductsOnOrder: 'ProductsOnOrder',
   Tag: 'Tag',
   Taggable: 'Taggable',
-  Order: 'Order',
-  ProductsOnOrder: 'ProductsOnOrder',
-  Otp: 'Otp'
+  Type: 'Type',
+  User: 'User'
 };
 
 /**
