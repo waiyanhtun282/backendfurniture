@@ -37,13 +37,13 @@ CREATE TABLE "Order" (
 CREATE TABLE "Otp" (
     "id" SERIAL NOT NULL,
     "phone" VARCHAR(15) NOT NULL,
-    "otp" VARCHAR(6) NOT NULL,
+    "otp" TEXT NOT NULL,
     "rememberToken" TEXT NOT NULL,
     "verifyToken" TEXT,
     "count" SMALLINT NOT NULL DEFAULT 0,
-    "error" SMALLINT NOT NULL DEFAULT 0,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "error" SMALLINT NOT NULL DEFAULT 0,
 
     CONSTRAINT "Otp_pkey" PRIMARY KEY ("id")
 );
@@ -141,6 +141,12 @@ CREATE TABLE "User" (
 );
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Otp_phone_key" ON "Otp"("phone");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "User_phone_key" ON "User"("phone");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- AddForeignKey
@@ -172,4 +178,3 @@ ALTER TABLE "ProductsOnOrder" ADD CONSTRAINT "ProductsOnOrder_productId_fkey" FO
 
 -- AddForeignKey
 ALTER TABLE "Taggable" ADD CONSTRAINT "Taggable_tagId_fkey" FOREIGN KEY ("tagId") REFERENCES "Tag"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-

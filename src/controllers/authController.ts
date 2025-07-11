@@ -3,6 +3,7 @@ import { body, validationResult } from "express-validator";
 import { createOTP, getUserByPhone } from "../services/authServices";
 import { checkUserExits } from "../utlis/auth";
 import { generateOTP, generateToken } from "../utlis/generate";
+import * as bcrypt from "bcrypt"; // Import bcryptjs for password hashi
 
 export const register = [
   body("phone", "Invalid phone number")
@@ -33,17 +34,19 @@ export const register = [
 
     const otp = generateOTP();
     const token = generateToken();
+    const salt = await bcrypt.genSalt(10);
+    const hashOtp =await bcrypt.hash(otp.toString(),salt);
     // save opt add db
     const otpData = {
       phone,
-      otp:otp.toString(),
+      otp:hashOtp,
       rememberToken: token,
       count:1,
     };
 
     const result = await createOTP(otpData);
 
-    console.log(result);
+    // console.log(result);
     res.status(200).json({
       message: `we are sending to OTP ${result.phone}`,
       phone: result.phone,
