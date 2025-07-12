@@ -5,4 +5,15 @@ export const checkUserExits =  (user: any) => {
         error.code = "Error_UserExists";
         throw error;
    }
+};
+
+export const checkOtpErrorIfSameDate = (isSameDate:boolean ,errorCount:number) =>{
+   if(isSameDate && errorCount === 5){
+      const error :any =new Error(
+        "Otp is wrong for 5 times.Please try again on tomoorrow"    
+      );
+      error.status =401;
+      error.code ="Error_OverLimit";
+      throw error;
+   }
 }
