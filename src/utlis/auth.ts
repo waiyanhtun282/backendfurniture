@@ -16,4 +16,14 @@ export const checkOtpErrorIfSameDate = (isSameDate:boolean ,errorCount:number) =
       error.code ="Error_OverLimit";
       throw error;
    }
+};
+
+export const checkOtpRow = (otpRow:any) =>{
+  if(!otpRow){
+   const error:any = new Error("The phone number is incorrect");
+   error.status=400;
+   error.code ="Invalid_Error";
+   throw error;
+
+  }
 }
