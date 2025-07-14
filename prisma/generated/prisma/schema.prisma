@@ -63,22 +63,24 @@ model Post {
 }
 
 model Product {
-  id          Int               @id @default(autoincrement())
-  name        String            @db.VarChar(255)
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(255)
   description String
-  price       Decimal           @db.Decimal(10, 2)
-  discount    Decimal           @default(0) @db.Decimal(10, 2)
-  rating      Int               @default(0) @db.SmallInt
-  inventory   Int               @default(0)
-  stauts      Status            @default(ACTIVE)
+  price       Decimal  @db.Decimal(10, 2)
+  discount    Decimal  @default(0) @db.Decimal(10, 2)
+  rating      Int      @default(0) @db.SmallInt
+  inventory   Int      @default(0)
+  stauts      Status   @default(ACTIVE)
   categoryId  Int
   typeId      Int
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
   image       Image[]
-  category    Category          @relation(fields: [categoryId], references: [id])
-  type        Type              @relation(fields: [typeId], references: [id])
-  products    ProductsOnOrder[]
+  category    Category @relation(fields: [categoryId], references: [id])
+  type        Type     @relation(fields: [typeId], references: [id])
+  users       User[]
+
+  orders ProductsOnOrder[]
 }
 
 model ProductsOnOrder {
@@ -129,6 +131,7 @@ model User {
   updatedAt       DateTime  @updatedAt
   orders          Order[]
   posts           Post[]
+  products        Product[]
 }
 
 enum Role {

@@ -9,7 +9,7 @@ import {
 import { checkOtpErrorIfSameDate, checkOtpRow, checkUserExits } from "../utlis/auth";
 import { generateOTP, generateToken } from "../utlis/generate";
 import * as bcrypt from "bcrypt"; // Import bcryptjs for password hashi
-import { Status } from '../../prisma/generated/prisma/index.d';
+import moment from "moment";
 
 export const register = [
   body("phone", "Invalid phone number")
@@ -27,8 +27,8 @@ export const register = [
       return next(error);
     }
     let phone = req.body.phone;
-    if (phone.slice(0, 3) === "971") {
-      phone = phone.substring(3, phone.length);
+    if (phone.slice(0, 2) === "09") {
+      phone = phone.substring(2, phone.length);
     }
 
     const user = await getUserByPhone(phone);
@@ -106,7 +106,7 @@ export const verifyOtp = [
     .trim()
     .notEmpty()
     .matches("^[0-9]+$")
-    .isLength({ min: 10, max: 12 }),
+    .isLength({ min: 5, max: 12 }),
   body("otp", "Invalid_OTP")
     .trim()
     .notEmpty()
@@ -126,27 +126,71 @@ export const verifyOtp = [
     checkUserExits(user);
 
     const otpRow = await getOtpByPhone(phone);
-     checkOtpRow(otpRow);
+    checkOtpRow(otpRow);
 
-     const lastOtpVerify = new Date(otpRow!.updatedAt).toLocaleDateString();
+    const lastOtpVerify = new Date(otpRow!.updatedAt).toLocaleDateString();
     const today = new Date().toLocaleDateString();
     const isSameDate = lastOtpVerify === today;
     //  If the otp verify  is  in the same date and limit
     checkOtpErrorIfSameDate(isSameDate, otpRow!.error);
-    let result;
 
-     if(otpRow?.rememberToken !== token) {
-      const otpData ={
-        error:5
+    // Token is wrong
+    if (otpRow?.rememberToken !== token) {
+      const otpData = {
+        error: 5,
       };
-      result = await updateOTP(otpRow!.id,otpData)
-      const error:any =new Error("Invalid Token");
-      error.status =400;
-       error.code = "Error-Invalid"     ;
-       return next(error);
-     }
+      await updateOTP(otpRow!.id, otpData);
+      const error: any = new Error("Invalid Token");
+      error.status = 400;
+      error.code = "Error-Invalid";
+      return next(error);
+    }
 
-    res.status(200).json({ message: "verifyOtp" });
+    //  OTP is expired
+    const isExpired = moment().diff(otpRow!.updatedAt, "minutes") > 2;
+    if (isExpired) {
+      const error: any = new Error("OTP is expired");
+      error.status = 403;
+      error.code = "Error_Expired";
+      return next(error);
+    }
+
+    const isMatchOtp = await bcrypt.compare(otp, otpRow!.otp);
+    //  Otp is wrong
+    if (!isMatchOtp) {
+      //  if OTP is wrong, first time on Today
+      if (!isSameDate) {
+        const otpData = {
+          error: 1,
+        };
+        await updateOTP(otpRow!.id, otpData);
+      } else {
+        // if otp is not first time on today
+        const otpData = {
+          error: { increment: 1 },
+        };
+        await updateOTP(otpRow!.id, otpData);
+      }
+      const error: any = new Error("OTP is incorrect");
+      error.status = 401;
+      error.code = "Error_InvalidOtp";
+      return next(error);
+    }
+
+    // ALl Otp ok
+    const verifyToken = generateOTP();
+    const otpData = {
+      verifyToken,
+      error: 0,
+      count: 1,
+    };
+    const result = await updateOTP(otpRow!.id, otpData);
+
+    res.status(200).json({
+      message: "Otp is successfully verified",
+      phone: result.phone,
+      token: result.verifyToken,
+    });
   },
 ];
 

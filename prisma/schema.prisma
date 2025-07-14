@@ -78,7 +78,9 @@ model Product {
   image           Image[]
   category        Category          @relation(fields: [categoryId], references: [id])
   type            Type              @relation(fields: [typeId], references: [id])
-  products ProductsOnOrder[]
+  users            User[]
+  
+  orders ProductsOnOrder[]
 }
 
 model ProductsOnOrder {
@@ -129,6 +131,7 @@ model User {
   updatedAt       DateTime  @updatedAt
   orders           Order[]
   posts            Post[]
+  products        Product[]
 }
 
 enum Role {

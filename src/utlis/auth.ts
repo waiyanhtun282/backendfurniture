@@ -18,12 +18,11 @@ export const checkOtpErrorIfSameDate = (isSameDate:boolean ,errorCount:number) =
    }
 };
 
-export const checkOtpRow = (otpRow:any) =>{
-  if(!otpRow){
-   const error:any = new Error("The phone number is incorrect");
-   error.status=400;
-   error.code ="Invalid_Error";
-   throw error;
-
+export const checkOtpRow = (otpRow: any) => {
+  if (!otpRow) {
+    const error: any = new Error("Phone number is incorrect.");
+    error.status = 400;
+    error.code = "Invlid_Phone";
+    throw error;
   }
-}
+};
