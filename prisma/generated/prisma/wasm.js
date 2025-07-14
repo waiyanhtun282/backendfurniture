@@ -125,12 +125,6 @@ exports.Prisma.CategoryScalarFieldEnum = {
   name: 'name'
 };
 
-exports.Prisma.ImageScalarFieldEnum = {
-  id: 'id',
-  path: 'path',
-  productId: 'productId'
-};
-
 exports.Prisma.OrderScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -161,7 +155,6 @@ exports.Prisma.PostScalarFieldEnum = {
   authorId: 'authorId',
   categoryId: 'categoryId',
   typeId: 'typeId',
-  published: 'published',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -174,14 +167,14 @@ exports.Prisma.ProductScalarFieldEnum = {
   discount: 'discount',
   rating: 'rating',
   inventory: 'inventory',
-  stauts: 'stauts',
+  status: 'status',
   categoryId: 'categoryId',
   typeId: 'typeId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
 
-exports.Prisma.ProductsOnOrderScalarFieldEnum = {
+exports.Prisma.ProductsOnOrdersScalarFieldEnum = {
   id: 'id',
   orderId: 'orderId',
   productId: 'productId',
@@ -189,16 +182,14 @@ exports.Prisma.ProductsOnOrderScalarFieldEnum = {
   price: 'price'
 };
 
-exports.Prisma.TagScalarFieldEnum = {
+exports.Prisma.PostTagScalarFieldEnum = {
   id: 'id',
   name: 'name'
 };
 
-exports.Prisma.TaggableScalarFieldEnum = {
+exports.Prisma.ProductTagScalarFieldEnum = {
   id: 'id',
-  tagId: 'tagId',
-  typeId: 'typeId',
-  type: 'type'
+  name: 'name'
 };
 
 exports.Prisma.TypeScalarFieldEnum = {
@@ -221,6 +212,12 @@ exports.Prisma.UserScalarFieldEnum = {
   image: 'image',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ImageScalarFieldEnum = {
+  id: 'id',
+  path: 'path',
+  productId: 'productId'
 };
 
 exports.Prisma.SortOrder = {
@@ -251,16 +248,16 @@ exports.Role = exports.$Enums.Role = {
 
 exports.Prisma.ModelName = {
   Category: 'Category',
-  Image: 'Image',
   Order: 'Order',
   Otp: 'Otp',
   Post: 'Post',
   Product: 'Product',
-  ProductsOnOrder: 'ProductsOnOrder',
-  Tag: 'Tag',
-  Taggable: 'Taggable',
+  ProductsOnOrders: 'ProductsOnOrders',
+  PostTag: 'PostTag',
+  ProductTag: 'ProductTag',
   Type: 'Type',
-  User: 'User'
+  User: 'User',
+  Image: 'Image'
 };
 
 /**

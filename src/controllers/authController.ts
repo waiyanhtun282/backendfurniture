@@ -1,16 +1,22 @@
-import { Request, Response, NextFunction } from "express";
+import  { Request, Response, NextFunction } from "express";
 import { body, validationResult } from "express-validator";
 import {
   createOTP,
+  createUser,
   getOtpByPhone,
   getUserByPhone,
-  updateOTP,
-} from "../services/authServices";
-import { checkOtpErrorIfSameDate, checkOtpRow, checkUserExits } from "../utlis/auth";
+  updateOtp,
+  updateUSER,
+} from "../services/authService";
+import {
+  checkOtpErrorIfSameDate,
+  checkOtpRow,
+  checkUserExits,
+} from "../utlis/auth";
 import { generateOTP, generateToken } from "../utlis/generate";
-import * as bcrypt from "bcrypt"; // Import bcryptjs for password hashi
+import * as bcrypt from "bcrypt"; // Import bcryptjs for password hashing
 import moment from "moment";
-
+import jwt from "jsonwebtoken";
 export const register = [
   body("phone", "Invalid phone number")
     .trim()
@@ -72,7 +78,7 @@ export const register = [
           count: 1,
           error: 0,
         };
-        result = await updateOTP(otpRow.id, otpData);
+        result = await updateOtp(otpRow.id, otpData);
       } else {
         if (otpRow.count === 3) {
           const error: any = new Error("OTP allowed is 3 times on per day");
@@ -87,7 +93,7 @@ export const register = [
               increment: 1,
             },
           };
-          result = await updateOTP(otpRow.id, otpData);
+          result = await updateOtp(otpRow.id, otpData);
         }
       }
     }
@@ -139,7 +145,7 @@ export const verifyOtp = [
       const otpData = {
         error: 5,
       };
-      await updateOTP(otpRow!.id, otpData);
+      await updateOtp(otpRow!.id, otpData);
       const error: any = new Error("Invalid Token");
       error.status = 400;
       error.code = "Error-Invalid";
@@ -163,13 +169,13 @@ export const verifyOtp = [
         const otpData = {
           error: 1,
         };
-        await updateOTP(otpRow!.id, otpData);
+        await updateOtp(otpRow!.id, otpData);
       } else {
         // if otp is not first time on today
         const otpData = {
           error: { increment: 1 },
         };
-        await updateOTP(otpRow!.id, otpData);
+        await updateOtp(otpRow!.id, otpData);
       }
       const error: any = new Error("OTP is incorrect");
       error.status = 401;
@@ -179,12 +185,14 @@ export const verifyOtp = [
 
     // ALl Otp ok
     const verifyToken = generateOTP();
+    // const hashVerifyToken = await bcrypt.hash(verifyToken.toString(), 10);
+    // console.log(verifyToken);
     const otpData = {
       verifyToken,
       error: 0,
       count: 1,
     };
-    const result = await updateOTP(otpRow!.id, otpData);
+    const result = await updateOtp(otpRow!.id, otpData);
 
     res.status(200).json({
       message: "Otp is successfully verified",
@@ -194,13 +202,121 @@ export const verifyOtp = [
   },
 ];
 
-export const confirmPassword = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  res.status(200).json({ message: "confirmPassword" });
-};
+// sending OTP --> verify OTP --> confirm-password ---> New account
+export const confirmPassword = [
+  body("phone", "Invalid phone number")
+    .trim()
+    .notEmpty()
+    .matches("^[0-9]+$")
+    .isLength({ min: 5, max: 12 }),
+  body("password", "Psaassword must be 8 digits")
+    .trim()
+    .notEmpty()
+    .matches("^[0-9]+$")
+    .isLength({ min: 8, max: 8 }),
+  body("token", "Invalid_Token").trim().notEmpty().escape(),
+  async (req: Request, res: Response, next: NextFunction) => {
+    // if validaiton errors occur
+    const errors = validationResult(req).array({ onlyFirstError: true });
+    if (errors.length > 0) {
+      const error: any = new Error(errors[0].msg);
+      error.status = 400;
+      error.code = "Error_Invalid";
+      return next(error);
+    }
+    const { phone, password, token } = req.body;
+    const user = await getUserByPhone(phone);
+    checkUserExits(user);
+
+    const otpRow = await getOtpByPhone(phone);
+    checkOtpRow(otpRow);
+
+    // Otp occurs is over limit
+    if (otpRow?.error === 5) {
+      const error: any = new Error("This request must be attacked");
+      error.status = 400;
+      error.code = "Error_BadRequest";
+      return next(error);
+    }
+
+    // Token is wrong
+    if (otpRow?.verifyToken !== token) {
+      const otpData = {
+        error: 5,
+      };
+      await updateOtp(otpRow!.id, otpData);
+
+      const error: any = new Error("Invalid Token");
+      error.status = 400;
+      error.code = "Error-Invalid";
+      return next(error);
+    }
+
+    // required expired
+    const isExpired = moment().diff(otpRow!.updatedAt, "minutes") > 10;
+    if (isExpired) {
+      const error: any = new Error("Your request is expired,Please Try again");
+      error.status = 403;
+      error.code = "Error_Expired";
+      return next(error);
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashPassword = await bcrypt.hash(password, salt);
+
+    const randomToken = "this token will be replace soon";
+    const userData = {
+      phone,
+      password: hashPassword,
+      randomToken,
+    };
+
+    const newUser = await createUser(userData);
+
+    const accessTokenPayload = { id: newUser.id };
+    const refreshTokenPayload = { id: newUser.id, phone: newUser.phone };
+
+    const accessToken = jwt.sign(
+      accessTokenPayload,
+      process.env.ACCESS_TOKEN_SECRET!,
+      {
+        expiresIn: 60 * 15,
+      }
+    );
+    const refreshToken = jwt.sign(
+      refreshTokenPayload,
+      process.env.REFRESH_TOKEN_SECRET!,
+      {
+        expiresIn: "30d",
+      }
+    );
+
+    const userUpdateData = {
+      randomToken: refreshToken,
+    };
+
+    await updateUSER(newUser.id, userUpdateData);
+
+    res
+      .cookie("accessToken", accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+        maxAge: 60 * 15 * 1000, // 15 minutes
+      })
+      .cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      })
+      .status(201)
+      .json({
+        message: "Your account is successfully created",
+        userId: newUser.id,
+      });
+  },
+];
 
 export const login = async (
   req: Request,

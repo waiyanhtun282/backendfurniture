@@ -13,15 +13,6 @@ CREATE TABLE "Category" (
 );
 
 -- CreateTable
-CREATE TABLE "Image" (
-    "id" SERIAL NOT NULL,
-    "path" VARCHAR(255) NOT NULL,
-    "productId" INTEGER NOT NULL,
-
-    CONSTRAINT "Image_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "Order" (
     "id" SERIAL NOT NULL,
     "userId" INTEGER NOT NULL,
@@ -58,7 +49,6 @@ CREATE TABLE "Post" (
     "authorId" INTEGER NOT NULL,
     "categoryId" INTEGER NOT NULL,
     "typeId" INTEGER NOT NULL,
-    "published" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -74,7 +64,7 @@ CREATE TABLE "Product" (
     "discount" DECIMAL(10,2) NOT NULL DEFAULT 0,
     "rating" SMALLINT NOT NULL DEFAULT 0,
     "inventory" INTEGER NOT NULL DEFAULT 0,
-    "stauts" "Status" NOT NULL DEFAULT 'ACTIVE',
+    "status" "Status" NOT NULL DEFAULT 'ACTIVE',
     "categoryId" INTEGER NOT NULL,
     "typeId" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -84,32 +74,30 @@ CREATE TABLE "Product" (
 );
 
 -- CreateTable
-CREATE TABLE "ProductsOnOrder" (
+CREATE TABLE "ProductsOnOrders" (
     "id" SERIAL NOT NULL,
     "orderId" INTEGER NOT NULL,
     "productId" INTEGER NOT NULL,
     "quantity" SMALLINT NOT NULL,
     "price" DECIMAL(10,2) NOT NULL,
 
-    CONSTRAINT "ProductsOnOrder_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "ProductsOnOrders_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "Tag" (
+CREATE TABLE "PostTag" (
     "id" SERIAL NOT NULL,
     "name" VARCHAR(52) NOT NULL,
 
-    CONSTRAINT "Tag_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "PostTag_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "Taggable" (
+CREATE TABLE "ProductTag" (
     "id" SERIAL NOT NULL,
-    "tagId" INTEGER NOT NULL,
-    "typeId" INTEGER NOT NULL,
-    "type" VARCHAR(7) NOT NULL,
+    "name" VARCHAR(52) NOT NULL,
 
-    CONSTRAINT "Taggable_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "ProductTag_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -132,7 +120,7 @@ CREATE TABLE "User" (
     "status" "Status" NOT NULL DEFAULT 'ACTIVE',
     "lastLogin" TIMESTAMP(3),
     "errorLoginCount" SMALLINT NOT NULL DEFAULT 0,
-    "randomToken" TEXT NOT NULL,
+    "randToken" TEXT NOT NULL,
     "image" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -140,8 +128,53 @@ CREATE TABLE "User" (
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "Image" (
+    "id" SERIAL NOT NULL,
+    "path" VARCHAR(255) NOT NULL,
+    "productId" INTEGER NOT NULL,
+
+    CONSTRAINT "Image_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "_PostToPostTag" (
+    "A" INTEGER NOT NULL,
+    "B" INTEGER NOT NULL,
+
+    CONSTRAINT "_PostToPostTag_AB_pkey" PRIMARY KEY ("A","B")
+);
+
+-- CreateTable
+CREATE TABLE "_ProductToProductTag" (
+    "A" INTEGER NOT NULL,
+    "B" INTEGER NOT NULL,
+
+    CONSTRAINT "_ProductToProductTag_AB_pkey" PRIMARY KEY ("A","B")
+);
+
+-- CreateTable
+CREATE TABLE "_ProductToUser" (
+    "A" INTEGER NOT NULL,
+    "B" INTEGER NOT NULL,
+
+    CONSTRAINT "_ProductToUser_AB_pkey" PRIMARY KEY ("A","B")
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Category_name_key" ON "Category"("name");
+
 -- CreateIndex
 CREATE UNIQUE INDEX "Otp_phone_key" ON "Otp"("phone");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "PostTag_name_key" ON "PostTag"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ProductTag_name_key" ON "ProductTag"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Type_name_key" ON "Type"("name");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_phone_key" ON "User"("phone");
@@ -149,8 +182,14 @@ CREATE UNIQUE INDEX "User_phone_key" ON "User"("phone");
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
--- AddForeignKey
-ALTER TABLE "Image" ADD CONSTRAINT "Image_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+-- CreateIndex
+CREATE INDEX "_PostToPostTag_B_index" ON "_PostToPostTag"("B");
+
+-- CreateIndex
+CREATE INDEX "_ProductToProductTag_B_index" ON "_ProductToProductTag"("B");
+
+-- CreateIndex
+CREATE INDEX "_ProductToUser_B_index" ON "_ProductToUser"("B");
 
 -- AddForeignKey
 ALTER TABLE "Order" ADD CONSTRAINT "Order_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -171,10 +210,28 @@ ALTER TABLE "Product" ADD CONSTRAINT "Product_categoryId_fkey" FOREIGN KEY ("cat
 ALTER TABLE "Product" ADD CONSTRAINT "Product_typeId_fkey" FOREIGN KEY ("typeId") REFERENCES "Type"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ProductsOnOrder" ADD CONSTRAINT "ProductsOnOrder_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "ProductsOnOrders" ADD CONSTRAINT "ProductsOnOrders_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ProductsOnOrder" ADD CONSTRAINT "ProductsOnOrder_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "ProductsOnOrders" ADD CONSTRAINT "ProductsOnOrders_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Taggable" ADD CONSTRAINT "Taggable_tagId_fkey" FOREIGN KEY ("tagId") REFERENCES "Tag"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Image" ADD CONSTRAINT "Image_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_PostToPostTag" ADD CONSTRAINT "_PostToPostTag_A_fkey" FOREIGN KEY ("A") REFERENCES "Post"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_PostToPostTag" ADD CONSTRAINT "_PostToPostTag_B_fkey" FOREIGN KEY ("B") REFERENCES "PostTag"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_ProductToProductTag" ADD CONSTRAINT "_ProductToProductTag_A_fkey" FOREIGN KEY ("A") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_ProductToProductTag" ADD CONSTRAINT "_ProductToProductTag_B_fkey" FOREIGN KEY ("B") REFERENCES "ProductTag"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_ProductToUser" ADD CONSTRAINT "_ProductToUser_A_fkey" FOREIGN KEY ("A") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_ProductToUser" ADD CONSTRAINT "_ProductToUser_B_fkey" FOREIGN KEY ("B") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;

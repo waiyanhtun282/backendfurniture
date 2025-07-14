@@ -20,9 +20,21 @@ export const getOtpByPhone = async (phone: string) => {
   });
 };
 
-export const updateOTP = async (id:number,otpData: any) => {
-  return await prisma.otp.update({
-    where:{id},
+export const updateOtp = async (id: number, otpData: any) => {
+  return prisma.otp.update({
+    where: { id },
     data: otpData,
+  });
+};
+
+export const createUser = async (userData: any) => {
+  return await prisma.user.create({
+    data: userData,
+  });
+};
+export const updateUSER = async (id: number, userData: any) => {
+  return await prisma.user.update({
+    where: { id },
+    data: userData,
   });
 };
