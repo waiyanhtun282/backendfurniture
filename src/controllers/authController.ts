@@ -6,7 +6,7 @@ import {
   getOtpByPhone,
   getUserByPhone,
   updateOtp,
-  updateUSER,
+  updateUser,
 } from "../services/authService";
 import {
   checkOtpErrorIfSameDate,
@@ -301,7 +301,7 @@ export const confirmPassword = [
       randomToken: refreshToken,
     };
 
-    await updateUSER(newUser.id, userUpdateData);
+    await updateUser(newUser.id, userUpdateData);
 
     res
       .cookie("accessToken", accessToken, {
@@ -330,12 +330,12 @@ export const login = [
     .notEmpty()
     .matches("^[0-9]+$")
     .isLength({ min: 5, max: 12 }),
-  body("password", "Psaassword must be 8 digits")
+  body("password", "Password must be 8 digits")
     .trim()
     .notEmpty()
     .matches("^[0-9]+$")
     .isLength({ min: 8, max: 8 }),
-  body("token", "Invalid_Token").trim().notEmpty().escape(),
+
   async (req: Request, res: Response, next: NextFunction) => {
     // if validaiton errors occur
     const errors = validationResult(req).array({ onlyFirstError: true });
@@ -346,52 +346,56 @@ export const login = [
       return next(error);
     }
 
-    const { phone, password } = req.body;
+    const password = req.body.password;
+    let phone = req.body.phone;
+    if (phone.slice(0, 2) === "09") {
+      phone = phone.substring(2, phone.length);
+    }
+
     const user = await getUserByPhone(phone);
     checkUserIfNotExits(user);
 
     // if wrong password is over limit
     if (user?.status === "FREEZE") {
       const error: any = new Error(
-        "Your phone number is temporary locked .Please contact us"
+        "Your phone number is temporarily locked .Please contact us"
       );
 
       error.status = 401;
       error.code = "Error_FREEZE";
       return next(error);
-    };
+    }
 
-
-    // check password
+    // password check
     const isMatchPassword = await bcrypt.compare(password, user!.password);
-    if(!isMatchPassword) {
+    if (!isMatchPassword) {
       // Staring records wrong times
-        
+
       const lastRequest = new Date(user!.updatedAt).toLocaleDateString();
       const isSameDate = lastRequest === new Date().toLocaleDateString();
-      if(!isSameDate) {
-        // today password is wrong first time
+
+      if (!isSameDate) {
         const userData = {
-          errorLoginCount:1,
+          errorLoginCount: 1,
         };
-        await updateUSER(user!.id, userData);;
-      }
-      // if  passworin wrong 2 times
-      else
-        if(user!.errorLoginCount >=2) {
-//  Today password is wrong
-        const userData = {
-          status: "FREEZE",
-        }
-        await updateUSER(user!.id, userData);
- 
-        }else {
-          // Today pasword wrong is one times
+        await updateUser(user!.id, userData);
+      } else {
+        // Today password was wrong 2 times
+        if (user!.errorLoginCount >= 2) {
           const userData = {
-            errorLoginCount: { increment: 1 },
+            status: "FREEZE",
           };
-          await updateUSER(user!.id, userData);
+          await updateUser(user!.id, userData);
+        } else {
+          // Today password was wrong one time
+          const userData = {
+            errorLoginCount: {
+              increment: 1,
+            },
+          };
+          await updateUser(user!.id, userData);
         }
+      }
 
       // Ending
       const error: any = new Error("Password is incorrect");
@@ -400,7 +404,47 @@ export const login = [
       return next(error);
     }
 
+    // Authorization token
+    const accessTokenPayload = { id: user!.id };
+    const refreshTokenPayload = { id: user!.id, phone: user!.phone };
 
-    res.status(200).json({ message: "login" });
+    const accessToken = jwt.sign(
+      accessTokenPayload,
+      process.env.ACCESS_TOKEN_SECRET!,
+      {
+        expiresIn: 60 * 15, // 15 min
+      }
+    );
+
+    const refreshToken = jwt.sign(
+      refreshTokenPayload,
+      process.env.REFRESH_TOKEN_SECRET!,
+      {
+        expiresIn: "30d",
+      }
+    );
+
+    const userData = {
+      errorLoginCount: 0, // reset error count
+      randomToken: refreshToken,
+    };
+
+    await updateUser(user!.id, userData);
+
+    res
+      .cookie("accessToken", accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+        maxAge: 60 * 15 * 1000, // 15 minutes
+      })
+      .cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      })
+      .status(200)
+      .json({ message: "Login Successfully", userId: user!.id });
   },
 ];
