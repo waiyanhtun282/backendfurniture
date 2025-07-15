@@ -1,4 +1,4 @@
-import  { Request, Response, NextFunction } from "express";
+import { Request, Response, NextFunction } from "express";
 import { body, validationResult } from "express-validator";
 import {
   createOTP,
@@ -12,11 +12,13 @@ import {
   checkOtpErrorIfSameDate,
   checkOtpRow,
   checkUserExits,
+  checkUserIfNotExits,
 } from "../utlis/auth";
 import { generateOTP, generateToken } from "../utlis/generate";
 import * as bcrypt from "bcrypt"; // Import bcryptjs for password hashing
 import moment from "moment";
 import jwt from "jsonwebtoken";
+
 export const register = [
   body("phone", "Invalid phone number")
     .trim()
@@ -184,9 +186,10 @@ export const verifyOtp = [
     }
 
     // ALl Otp ok
-    const verifyToken = generateOTP();
+    const verifyToken = generateToken();
+    // console.log(typeof(verifyToken));
     // const hashVerifyToken = await bcrypt.hash(verifyToken.toString(), 10);
-    // console.log(verifyToken);
+    // console.log(typeof(hashVerifyToken));
     const otpData = {
       verifyToken,
       error: 0,
@@ -265,6 +268,8 @@ export const confirmPassword = [
     const hashPassword = await bcrypt.hash(password, salt);
 
     const randomToken = "this token will be replace soon";
+
+    // create new account
     const userData = {
       phone,
       password: hashPassword,
@@ -291,6 +296,7 @@ export const confirmPassword = [
       }
     );
 
+    // updateing token with refrsh token
     const userUpdateData = {
       randomToken: refreshToken,
     };
@@ -318,10 +324,83 @@ export const confirmPassword = [
   },
 ];
 
-export const login = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  res.status(200).json({ message: "login" });
-};
+export const login = [
+  body("phone", "Invalid phone number")
+    .trim()
+    .notEmpty()
+    .matches("^[0-9]+$")
+    .isLength({ min: 5, max: 12 }),
+  body("password", "Psaassword must be 8 digits")
+    .trim()
+    .notEmpty()
+    .matches("^[0-9]+$")
+    .isLength({ min: 8, max: 8 }),
+  body("token", "Invalid_Token").trim().notEmpty().escape(),
+  async (req: Request, res: Response, next: NextFunction) => {
+    // if validaiton errors occur
+    const errors = validationResult(req).array({ onlyFirstError: true });
+    if (errors.length > 0) {
+      const error: any = new Error(errors[0].msg);
+      error.status = 400;
+      error.code = "Error_Invalid";
+      return next(error);
+    }
+
+    const { phone, password } = req.body;
+    const user = await getUserByPhone(phone);
+    checkUserIfNotExits(user);
+
+    // if wrong password is over limit
+    if (user?.status === "FREEZE") {
+      const error: any = new Error(
+        "Your phone number is temporary locked .Please contact us"
+      );
+
+      error.status = 401;
+      error.code = "Error_FREEZE";
+      return next(error);
+    };
+
+
+    // check password
+    const isMatchPassword = await bcrypt.compare(password, user!.password);
+    if(!isMatchPassword) {
+      // Staring records wrong times
+        
+      const lastRequest = new Date(user!.updatedAt).toLocaleDateString();
+      const isSameDate = lastRequest === new Date().toLocaleDateString();
+      if(!isSameDate) {
+        // today password is wrong first time
+        const userData = {
+          errorLoginCount:1,
+        };
+        await updateUSER(user!.id, userData);;
+      }
+      // if  passworin wrong 2 times
+      else
+        if(user!.errorLoginCount >=2) {
+//  Today password is wrong
+        const userData = {
+          status: "FREEZE",
+        }
+        await updateUSER(user!.id, userData);
+ 
+        }else {
+          // Today pasword wrong is one times
+          const userData = {
+            errorLoginCount: { increment: 1 },
+          };
+          await updateUSER(user!.id, userData);
+        }
+
+      // Ending
+      const error: any = new Error("Password is incorrect");
+      error.status = 401;
+      error.code = "Error_InvalidPassword";
+      return next(error);
+    }
+
+
+    res.status(200).json({ message: "login" });
+  },
+];
