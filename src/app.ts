@@ -7,7 +7,7 @@ import morgan from "morgan";
 import { limiter } from "./middlewares/rateLimiter";
 import healthRoutes from "./routes/v1/health";
 import authRoutes from "./routes/v1/auth";
-
+import userRoutes from "./routes/v1/admins/user";
 import ViewRoutes   from "./routes/v1/web/view";
 // import * as errorController from "./controllers/web/errorController";
 
@@ -33,6 +33,7 @@ app.use(express.static("public"));
 app.use("/api/v1", healthRoutes);
 app.use( ViewRoutes);
 app.use("/api/v1",authRoutes);
+app.use("/api/v1/admins", userRoutes);
 
 // app.use(errorController.notFound);
 
