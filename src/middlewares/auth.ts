@@ -39,5 +39,5 @@ export const auth = (req: CustomRequest, res: Response, next: NextFunction) => {
     return next(error);
   }
    req.userId = decoded.id;
-  next();
+    next();
 };
