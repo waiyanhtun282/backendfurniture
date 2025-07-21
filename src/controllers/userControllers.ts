@@ -9,5 +9,5 @@ export const getAllUsers = async (
 ) => {
   const id = req.userId;
 
-  res.status(200).json({ message: "Get ALL Users   ", currentUserid: id });
+  res.status(200).json({ message: req.t("welcome"), currentUserid: id });
 };
