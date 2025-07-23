@@ -287,7 +287,7 @@ export const confirmPassword = [
       accessTokenPayload,
       process.env.ACCESS_TOKEN_SECRET!,
       {
-        expiresIn: 60 * 15,
+        expiresIn: 60 * 15, //15min
       }
     );
     const refreshToken = jwt.sign(

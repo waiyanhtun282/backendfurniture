@@ -7,7 +7,9 @@ import morgan from "morgan";
 import { limiter } from "./middlewares/rateLimiter";
 import healthRoutes from "./routes/v1/health";
 import authRoutes from "./routes/v1/auth";
-import userRoutes from "./routes/v1/admins/user";
+import adminRoutes from "./routes/v1/admins/user";
+import profileRoutes from "./routes/v1/api/user";
+
 import ViewRoutes   from "./routes/v1/web/view";
 import { auth } from "./middlewares/auth";
 import cookieParser from "cookie-parser";
@@ -81,7 +83,9 @@ app.use(express.static("public"));
 app.use("/api/v1", healthRoutes);
 app.use( ViewRoutes);
 app.use("/api/v1",authRoutes);
-app.use("/api/v1/admins", auth,userRoutes);
+app.use("/api/v1/admins", auth,adminRoutes);
+app.use("/api/v1", profileRoutes);
+
 
 // app.use(errorController.notFound);
 
