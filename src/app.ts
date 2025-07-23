@@ -15,6 +15,7 @@ import { auth } from "./middlewares/auth";
 import cookieParser from "cookie-parser";
 import i18next from "i18next";
 import middleware from "i18next-http-middleware";
+import { authorise } from "./middlewares/authorise";
 import Backend from  "i18next-fs-backend";
 import path from "path";
 
@@ -83,7 +84,7 @@ app.use(express.static("public"));
 app.use("/api/v1", healthRoutes);
 app.use( ViewRoutes);
 app.use("/api/v1",authRoutes);
-app.use("/api/v1/admins", auth,adminRoutes);
+app.use("/api/v1/admins", auth,authorise(true,"ADMIN"),adminRoutes);
 app.use("/api/v1", profileRoutes);
 
 

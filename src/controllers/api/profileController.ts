@@ -2,6 +2,7 @@
 import { Response,Request,NextFunction } from 'express';
 import { body ,query, validationResult } from 'express-validator';
 import { errorCode } from '../../../config/errorCode';
+import { title } from 'process';
 
 interface CutomerRequest extends Request {
     userId?: number;
@@ -29,4 +30,11 @@ async (req:CutomerRequest,res:Response,next:NextFunction) =>{
   res.status(200).json({
     message: req.t("changeLan", { lang: lng }),
   });
-}]
+}];
+
+export const testPermission = async (req:CutomerRequest,res:Response,next:NextFunction) =>{
+  const info = {
+    title : "test permission"
+  }
+    res.status(200).json({  info });
+}
