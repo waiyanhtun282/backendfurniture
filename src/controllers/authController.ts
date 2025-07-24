@@ -128,7 +128,7 @@ export const verifyOtp = [
     if (errors.length > 0) {
       const error: any = new Error(errors[0].msg);
       error.status = 400;
-      error.code =errorCode.invalid;
+      error.code = errorCode.invalid;
       return next(error);
     }
     const { phone, otp, token } = req.body;
@@ -226,7 +226,7 @@ export const confirmPassword = [
     if (errors.length > 0) {
       const error: any = new Error(errors[0].msg);
       error.status = 400;
-      error.code = errorCode.invalid  ;
+      error.code = errorCode.invalid;
       return next(error);
     }
     const { phone, password, token } = req.body;
@@ -480,13 +480,12 @@ export const logout = async (
     return next(error);
   }
 
-  if(isNaN(decoded.id) ) {
-       const err: any = new Error("You are not an  authenticated user");
-      err.status = 401;
-      err.code = errorCode.unauthenticated;
-      return next(err);
-    
-     }
+  if (isNaN(decoded.id)) {
+    const err: any = new Error("You are not an  authenticated user");
+    err.status = 401;
+    err.code = errorCode.unauthenticated;
+    return next(err);
+  }
 
   const user = await getUserById(decoded.id);
   checkUserIfNotExits(user);
@@ -503,7 +502,6 @@ export const logout = async (
   };
   await updateUser(user!.id, userData);
 
-
   res.clearCookie("accessToken", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
@@ -516,6 +514,81 @@ export const logout = async (
     sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
   });
 
-
   res.status(200).json({ message: "Successfully logged out.See you soon" });
 };
+
+export const forgetPassword = [
+  body("phone", "Invalid phone number")
+    .trim()
+    .notEmpty()
+    .matches("^[0-9]+$")
+    .isLength({ min: 5, max: 12 }),
+
+  async (req: Request, res: Response, next: NextFunction) => {
+    // if validaiton errors occur
+    const errors = validationResult(req).array({ onlyFirstError: true });
+    if (errors.length > 0) {
+      const error: any = new Error(errors[0].msg);
+      error.status = 400;
+      error.code = errorCode.invalid;
+      return next(error);
+    }
+
+    let phone = req.body.phone;
+
+    if (phone.slice(0, 2) === "09") {
+      phone = phone.substring(2, phone.length);
+    }
+
+    const user = await getUserByPhone(phone);
+    checkUserIfNotExits(user);
+
+    const otp = 123456;
+    //  const otp = await generateOTP();
+    const salt = await bcrypt.genSalt(10);
+    const hashOtp = await bcrypt.hash(otp.toString(), salt);
+    const token    =  generateToken();
+
+
+    const otpRow = await getOtpByPhone(phone);
+
+    let result ;
+
+    const lastOtpRequest = new Date(otpRow!.updatedAt).toLocaleDateString();
+    const today = new Date().toLocaleDateString();
+    const isSameDate = lastOtpRequest === today;
+    checkOtpErrorIfSameDate(isSameDate, otpRow!.error);
+
+    if(!isSameDate){
+     const otpData= {
+      otp: hashOtp,
+      rememberToken: token,
+      count: 1,
+      error:0
+     }
+      result = await updateOtp(otpRow!.id,otpData);
+    }else {
+        if(otpRow!.count === 5){
+          const error: any = new Error("OTP allowed is 3 times on per day");
+          error.status = 405;
+          error.code = errorCode.overLimit;
+          return next(error);
+        }else {
+          const otpData = {
+            otp: hashOtp,
+            rememberToken: token,
+            count: otpRow!.count +1
+          };
+          result = await updateOtp(otpRow!.id, otpData);
+        }
+    }
+
+    // Check if the OTP is valid and not expired
+
+    res.status(200).json({
+       message:`We are sending opt {result.phone} number`,
+       phone: result.phone,
+      token: result.rememberToken,
+      });
+  },
+];
