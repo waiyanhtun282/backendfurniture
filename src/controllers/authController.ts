@@ -543,6 +543,13 @@ export const forgetPassword = [
     const user = await getUserByPhone(phone);
     checkUserIfNotExits(user);
 
+
+    //OTP sending logic here
+    // Generate OTP && calll api
+    // if sms otp cannot be sent,response error
+
+
+
     const otp = 123456;
     //  const otp = await generateOTP();
     const salt = await bcrypt.genSalt(10);
@@ -551,6 +558,7 @@ export const forgetPassword = [
 
 
     const otpRow = await getOtpByPhone(phone);
+    // Warning -users change their phone number
 
     let result ;
 
@@ -583,7 +591,6 @@ export const forgetPassword = [
         }
     }
 
-    // Check if the OTP is valid and not expired
 
     res.status(200).json({
        message:`We are sending opt {result.phone} number`,
@@ -591,4 +598,204 @@ export const forgetPassword = [
       token: result.rememberToken,
       });
   },
+];
+
+export const verifyOtpForPassword =[
+  body("phone", "Invalid phone number")
+    .trim()
+    .notEmpty()
+    .matches("^[0-9]+$")
+    .isLength({ min: 5, max: 12 }),
+  body("otp", "Invalid_OTP")
+    .trim()
+    .notEmpty()
+    .matches("^[0-9]+$")
+    .isLength({ min: 6, max: 6 }),
+  body("token", "Invalid_Token").trim().notEmpty().escape(),
+  async (req: Request, res: Response, next: NextFunction) => {
+    const errors = validationResult(req).array({ onlyFirstError: true });
+    if (errors.length > 0) {
+      const error: any = new Error(errors[0].msg);
+      error.status = 400;
+      error.code = errorCode.invalid;
+      return next(error);
+    }
+
+    const { phone, otp, token } = req.body;
+    const user = await getUserByPhone(phone);
+    checkUserIfNotExits(user);
+    
+    const otpRow = await getOtpByPhone(phone);
+
+    const lastOtpVerify = new Date(otpRow!.updatedAt).toLocaleDateString();
+    const today         =  new Date().toLocaleDateString();
+    const isSameDate    =  lastOtpVerify === today; 
+
+    checkOtpErrorIfSameDate(isSameDate, otpRow!.error);
+
+    // if not same
+    if(otpRow?.rememberToken !== token){
+      const otpData = {
+        error: 5,
+      };
+      await updateOtp(otpRow!.id, otpData);
+      const error: any = new Error("Invalid Token");
+      error.status = 400;
+      error.code = errorCode.invalid;
+      return next(error);
+    } ;
+
+    //  OTP is expired
+    const isExpired = moment().diff(otpRow!.updatedAt, "minutes") > 2;
+    if(isExpired) {
+      const error: any = new Error("OTP is expired");
+      error.status = 403;
+      error.code = errorCode.otpExpired;
+      return next(error);
+    };
+
+    const isMatchOtp = await bcrypt.compare(otp, otpRow!.otp);
+    //  Otp is wrong  
+    if(!isMatchOtp){
+      //  if OTP is wrong, first time on Today
+      if(!isSameDate){
+        const otpData ={
+          error:1
+        }
+
+        await updateOtp(otpRow!.id, otpData);
+      }else {
+        // if otp is not first time on today
+        const otpData = {
+          error: { increment: 1 },
+        };
+        await updateOtp(otpRow!.id, otpData);
+      }
+
+      const error: any = new Error("OTP is incorrect");
+      error.status = 401;
+      error.code = errorCode.invalid;
+      return next(error);
+    }
+    
+
+    // ALL OTP is OK
+   const verifyToken = generateToken();
+    const otpData={
+      verifyToken,
+      error:0,
+      count:1
+    };
+    const result = await updateOtp(otpRow!.id, otpData);
+
+    res.status(200).json({
+      message: "Otp is successfully verified to reset password",
+      phone: result.phone,
+      token: result.verifyToken,
+    });
+    
+  }
+  ];
+
+  export const resetPassword =[
+  body("phone", "Invalid phone number")
+    .trim()
+    .notEmpty()
+    .matches("^[0-9]+$")
+    .isLength({ min: 5, max: 12 }),
+  
+  body("token", "Invalid_Token").trim().notEmpty().escape(),
+  async (req: Request, res: Response, next: NextFunction) => {
+    const errors = validationResult(req).array({ onlyFirstError: true });
+    if (errors.length > 0) {
+      const error: any = new Error(errors[0].msg);
+      error.status = 400;
+      error.code = errorCode.invalid;
+      return next(error);
+    }
+
+
+    const {phone ,token ,password} =req.body;
+
+    const user = await getUserByPhone(phone);
+    checkUserIfNotExits(user);
+
+    const otpRow = await getOtpByPhone(phone);
+
+    if(otpRow?.error === 5){
+      const error: any = new Error("This request must be attacked.please try again tomorrow");
+      error.status = 400;
+      error.code = errorCode.attack;
+      return next(error);
+    };
+
+    if(otpRow?.verifyToken !== token){
+      const otpData = {
+        error: 5,
+      };
+      await updateOtp(otpRow!.id, otpData);
+
+      const error: any = new Error("Invalid Token");
+      error.status = 400;
+      error.code = errorCode.invalid;
+      return next(error);
+    };
+    // required expired
+    const isExpired = moment().diff(otpRow!.updatedAt, "minutes") >5;
+    if(isExpired) {
+      const error: any = new Error("Your request is expired,Please Try again");
+      error.status = 403;
+      error.code = errorCode.requestExpired;
+      return next(error);
+    };
+
+    const salt = await bcrypt.genSalt(10);
+    const hashPassword = await bcrypt.hash(password, salt);
+
+    // jwt token
+    const accessTokenPayload = { id: user!.id };
+    const refreshTokenPayload = { id: user!.id, phone: user!.phone };
+    const accessToken = jwt.sign(
+      accessTokenPayload,
+      process.env.ACCESS_TOKEN_SECRET!,
+      {
+        expiresIn: 60 * 15, // 15 min
+      }
+    );
+
+    const refreshToken = jwt.sign(
+      refreshTokenPayload,
+      process.env.REFRESH_TOKEN_SECRET!,
+      {
+        expiresIn: "30d",
+      }
+    );
+
+    const userUpdateData ={
+      password: hashPassword,
+      randomToken: refreshToken,
+      
+    };
+
+     await updateUser(user!.id, userUpdateData);
+
+     res.cookie("accessToken", accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "none",
+        maxAge: 60 * 15 * 1000, // 15 minutes
+      })
+      .cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "none",
+        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      })
+      .status(200)
+      .json({ 
+        message: "Password reset successfully" ,
+        userId:user!.id,
+      });
+     }
+  
 ];
