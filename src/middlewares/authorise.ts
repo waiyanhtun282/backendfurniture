@@ -1,11 +1,11 @@
 import { Response, Request, NextFunction } from "express";
-import { permission } from "process";
 import { getUserById } from "../services/authService";
 import { errorCode } from "../../config/errorCode";
+import { createError } from "../utlis/error";
 
 interface CustomRequest extends Request {
   userId?: number;
-  user?:any;
+  user?: any;
 }
 
 // authroise (true, "ADMIN","AUTHOR") //deny USER
@@ -17,10 +17,12 @@ export const authorise = (permission: boolean, ...roles: string[]) => {
     const user = await getUserById(userId!);
 
     if (!user) {
-      const error: any = new Error("You are not an regsiter ");
-      error.status = 401;
-      error.code = errorCode.unauthenticated;
-      return next(error);
+      return next(
+        createError(
+          "You are not an regsiter ",
+           401,
+            errorCode.unauthenticated)
+      );
     }
 
     const result = roles.includes(user.role);
@@ -28,21 +30,20 @@ export const authorise = (permission: boolean, ...roles: string[]) => {
     // permission & result
 
     if (permission && !result) {
-      const error: any = new Error("This action is not allowed");
-      error.status = 403;
-      error.code = errorCode.unauthorised;
-      return next(error);
+      
+      return next(createError(
+        "This action is not allowed",
+        403,
+        errorCode.unauthorised
+      ));
     }
 
     if (!permission && result) {
-      const error: any = new Error(
-        "This action is not allowed"
-      );
-      error.status = 403;
-      error.code = errorCode.unauthorised;
-      return next(error);
+       return next(
+         createError("This action is not allowed", 403, errorCode.unauthorised)
+       );
     }
-    req.user=user;
+    req.user = user;
 
     next();
   };
