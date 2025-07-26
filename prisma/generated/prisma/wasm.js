@@ -220,6 +220,12 @@ exports.Prisma.ImageScalarFieldEnum = {
   productId: 'productId'
 };
 
+exports.Prisma.SettingScalarFieldEnum = {
+  id: 'id',
+  key: 'key',
+  value: 'value'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -257,7 +263,8 @@ exports.Prisma.ModelName = {
   ProductTag: 'ProductTag',
   Type: 'Type',
   User: 'User',
-  Image: 'Image'
+  Image: 'Image',
+  Setting: 'Setting'
 };
 
 /**

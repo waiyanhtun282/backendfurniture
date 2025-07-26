@@ -1,4 +1,4 @@
-import { AnyNsRecord } from "dns";
+
 import { Request, Response, NextFunction } from "express";
 interface CustomRequest extends Request {
   user?: any;
