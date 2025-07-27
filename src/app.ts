@@ -11,6 +11,8 @@ import middleware from "i18next-http-middleware";
 import Backend from  "i18next-fs-backend";
 import path from "path";
 import routes from "./routes/v1"
+import cron from "node-cron";
+import { createOrUpdateSettingStatus, getSettingStatus } from "./services/settingService";
 
 
 export const app = express();
@@ -84,3 +86,13 @@ app.use(
     res.status(status).json({ message, error: errorCode });
   }
 );
+
+cron.schedule('* 5 * * *', async () => {
+  console.log("Running task for a minutes purpose");
+  const setting = await getSettingStatus("maintenance");
+  if(setting?.value === "true"){
+    await createOrUpdateSettingStatus("maintenance", "false");
+    console.log("Now maintenance mode is off");
+  }
+
+})

@@ -6,5 +6,5 @@ const router =express.Router();
 
 
 router.get('/users', getAllUsers);
-router.post('/mainteance',setMaintenance)
+router.post('/maintenance',setMaintenance)
 export  default router;

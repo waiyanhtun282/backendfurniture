@@ -4,6 +4,7 @@ import adminRoutes from "./admins";
 import userRoutes from "./api";
 import { auth } from "../../middlewares/auth";
 import { authorise } from "../../middlewares/authorise";
+import { maintenance } from "../../middlewares/maintenance";
 // import healthRoutes from "../v1/health";
 // import ViewRoutes   from "./web/view";
 // import * as errorController from "./controllers/web/errorController";
@@ -15,8 +16,18 @@ const router = express.Router();
 // router.use( ViewRoutes);
 // app.use(errorController.notFound);
 
-router.use("/api/v1",authRoutes);
-router.use("/api/v1/user", userRoutes);
-router.use("/api/v1/admins", auth,authorise(true,"ADMIN"),adminRoutes);
+router.use("/api/v1" ,authRoutes);
+router.use("/api/v1/user"  ,userRoutes);
+router.use("/api/v1/admins" ,auth,authorise(true,"ADMIN"),adminRoutes);
+
+// router.use("/api/v1", maintenance, authRoutes);
+// router.use("/api/v1/user", maintenance, userRoutes);
+// router.use(
+//   "/api/v1/admins",
+//   maintenance,
+//   auth,
+//   authorise(true, "ADMIN"),
+//   adminRoutes
+// );
 
 export default router;
