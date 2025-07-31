@@ -1,5 +1,5 @@
 import multer, { FileFilterCallback } from "multer";
-
+import { Request } from "express";
 
 const fileStorage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -11,15 +11,34 @@ const fileStorage = multer.diskStorage({
     // }else{
     //   cb(null, "uploads/files");
     // }
-
-
   },
   filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
-    cb(null, uniqueSuffix + '-' + file.originalname )
-  }
-})
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + "-" + file.originalname);
+  },
+});
 
-const upload = multer({ storage: fileStorage })
+const fileFilter = (
+  req: Request,
+  file: Express.Multer.File,
+  cb: FileFilterCallback
+) => {
+  if (
+    file.mimetype === "image/png" ||
+    file.mimetype === "image/jpg" ||
+    file.mimetype === "image/jpeg"
+  ) {
+    cb(null, true);
+  } else {
+    cb(null, false);
+  }
+};
+
+
+const upload = multer({
+  storage: fileStorage,
+  fileFilter,
+  limits: { fileSize: 1024 * 1024 * 2 } // 2MB 10 mb must image is optimizaiotion is needed
+});
 
 export default upload;

@@ -5,9 +5,11 @@ import { errorCode } from "../../../config/errorCode";
 import { getUserById } from "../../services/authService";
 import { checkUserIfNotExits } from "../../utlis/auth";
 import { authorise } from "../../utlis/authorise";
+import { checkUploadFile } from "../../utlis/check";
 
 interface CutomerRequest extends Request {
   userId?: number;
+  file?:any;
 }
 export const changeLanguage = [
   query("lng", "Invalid language code!.")
@@ -47,10 +49,28 @@ export const testPermission = async (
   };
 
   // if user.role ="AUHTOR"
-  const can =  authorise(true, user!.role, "AUTHOR");
+  const can = authorise(true, user!.role, "AUTHOR");
 
-  if ( can) {
+  if (can) {
     info.title = "You are authorised to view this page";
   }
   res.status(200).json({ info });
+};
+
+export const uploadFile = async (
+  req: CutomerRequest,
+  res: Response,
+  next: NextFunction
+) => {
+
+  const userId =req.userId;
+  const image =req.file;
+
+  const user = await getUserById(userId!);
+  checkUserIfNotExits(user);
+  checkUploadFile(image);
+
+  res.status(200).json({
+    message: "Profile image is   upload successfully",
+  });
 };
