@@ -74,6 +74,8 @@ app
 // }
 
 app.use(express.static("public"));
+// app.use(express.static("uploads/images"));
+
 
 app.use(routes);
 

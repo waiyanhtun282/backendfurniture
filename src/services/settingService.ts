@@ -13,5 +13,5 @@ export const  createOrUpdateSettingStatus = async (key: string, value: string) =
     where: { key },
     update: { value },
     create: { key, value },
-  })
-}
+  });
+};

@@ -17,7 +17,7 @@ const router = express.Router();
 // app.use(errorController.notFound);
 
 router.use("/api/v1" ,authRoutes);
-router.use("/api/v1/user"  ,userRoutes);
+router.use("/api/v1/users"  ,userRoutes);
 router.use("/api/v1/admins" ,auth,authorise(true,"ADMIN"),adminRoutes);
 
 // router.use("/api/v1", maintenance, authRoutes);
