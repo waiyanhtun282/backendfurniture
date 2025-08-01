@@ -2,6 +2,7 @@ import { Response, Request, NextFunction } from "express";
 import { body, query, validationResult } from "express-validator";
 import { errorCode } from "../../../config/errorCode";
 import path from "path";
+import sharp from "sharp";
 import { unlink } from "fs/promises";
 import { getUserById, updateUser } from "../../services/authService";
 import { checkUserIfNotExits } from "../../utlis/auth";
@@ -126,5 +127,61 @@ export const MultipleUploadFile = async (
   res.status(200).json({
     message: "MultipleProfile image is   upload successfully",
    
+  });
+}
+
+export const uploadProfileOptimize =  async (
+  req: CutomerRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  const userId = req.userId;
+  const image = req.file;
+
+  const user = await getUserById(userId!);
+  checkUserIfNotExits(user);
+  checkUploadFile(image);
+
+  const fileName = Date.now() + "-" + `${Math.round(Math.random() * 1e9)}.webp`;
+
+  try {
+    const optimizedImagePath = path.join(
+      __dirname,
+      "../../..",
+      "/uploads/images",
+      fileName
+    );
+    await sharp(req.file?.buffer)
+      .resize(200, 200)
+      .webp({ quality: 50 })
+      .toFile(optimizedImagePath);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Image optimization failed." });
+    return;
+  }
+
+  if (user?.image) {
+    try {
+      const filePath = path.join(
+        __dirname,
+        "../../..",
+        "/uploads/images",
+        fileName
+      );
+      await unlink(filePath);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  const userData = {
+    image: fileName,
+  };
+
+  await updateUser(user!.id, userData!);
+  res.status(200).json({
+    message: "uploadProfileOptimize image is   upload successfully",
+    image: fileName,
   });
 }

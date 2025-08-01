@@ -5,9 +5,10 @@ import {
   uploadFile,
   myPhoto,
   MultipleUploadFile,
+  uploadProfileOptimize,
 } from "../../../controllers/api/profileController";
 import { auth } from '../../../middlewares/auth';
-import upload from '../../../middlewares/uploadFile';
+import upload, { uploadMemory } from '../../../middlewares/uploadFile';
 
 const router =express.Router();
 
@@ -16,6 +17,8 @@ router.post('/change-language', changeLanguage);
 router.get('/test-permission', auth,testPermission);
 
 router.patch('/profile/upload' ,auth ,upload.single('avatar'),uploadFile);
+router.patch("/profile/upload/optimize", auth, uploadMemory.single("avatar"), uploadProfileOptimize);
+
 router.patch("/profile/upload/multiple", auth, upload.array("avatar"), MultipleUploadFile);
 
 
