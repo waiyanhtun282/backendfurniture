@@ -17,9 +17,9 @@ router.post('/change-language', changeLanguage);
 router.get('/test-permission', auth,testPermission);
 
 router.patch('/profile/upload' ,auth ,upload.single('avatar'),uploadFile);
-router.patch("/profile/upload/optimize", auth, uploadMemory.single("avatar"), uploadProfileOptimize);
+router.patch('/profile/upload/optimize', auth, upload.single('avatar'), uploadProfileOptimize);
 
-router.patch("/profile/upload/multiple", auth, upload.array("avatar"), MultipleUploadFile);
+router.patch('/profile/upload/multiple', auth, upload.array('avatar'), MultipleUploadFile);
 
 
 router.get('/profile/my-photo',myPhoto) //just testing
