@@ -6,9 +6,16 @@ import { unlink } from "fs/promises";
 import { errorCode } from "../../../config/errorCode";
 import { createError } from "../../utlis/error";
 import { getUserById } from "../../services/authService";
-import { checkUploadFile } from "../../utlis/check";
+import { checkModelIfExit, checkUploadFile } from "../../utlis/check";
 import ImageQueue from "../../jobs/queues/imageQueue";
-import { createOnePost, getPostById, PostArgs, updateOnePost } from "../../services/postService";
+import {
+  createOnePost,
+  deleteOnePost,
+  getPostById,
+  PostArgs,
+  updateOnePost,
+} from "../../services/postService";
+import { checkUserIfNotExits } from "../../utlis/auth";
 
 interface CutomerRequest extends Request {
   userId?: number;
@@ -131,7 +138,7 @@ export const createPost = [
 ];
 
 export const updatePost = [
-  body("postId", "podtId is required").isInt({ min : 1 }),
+  body("postId", "podtId is required").trim().notEmpty().isInt({ min: 1 }),
   body("content", "Content is required").trim().notEmpty().escape(),
   body("body", "Body is required")
     .trim()
@@ -192,18 +199,13 @@ export const updatePost = [
     //admin b => update/delete =>post 1 (nit allowed);
 
     if (user.id !== post.authorId) {
-       if (req.file) {
-         await removeFile(req.file.filename, null);
-       }
-       return next(
-         createError(
-           "This action not allowed",
-           403,
-           errorCode.unauthorised
-         )
-       );
-    };
-
+      if (req.file) {
+        await removeFile(req.file.filename, null);
+      }
+      return next(
+        createError("This action not allowed", 403, errorCode.unauthorised)
+      );
+    }
 
     const data: any = {
       title,
@@ -214,48 +216,44 @@ export const updatePost = [
       type,
       tags,
     };
-   
-    if(req.file){
-      data.image =req.file.filename;
-         const splitFileName = req.file.filename.split(".")[0];
 
-         await ImageQueue.add(
-           "optimize-image",
-           {
-             filePath: req.file?.path,
-             fileName: `${splitFileName}.webp`,
-             width: 835,
-             height: 577,
-             quality: 100,
-           },
-           {
-             attempts: 3,
-             backoff: {
-               type: "exponential",
-               delay: 1000,
-             },
-           }
-         );
+    if (req.file) {
+      data.image = req.file.filename;
+      const splitFileName = req.file.filename.split(".")[0];
 
-         const optimizeFile =post.image.split('.')[0] + '.webp';
-         await removeFile(post.image,optimizeFile)
-    };
-   
-    const postUpdated = await updateOnePost(post.id ,data);
+      await ImageQueue.add(
+        "optimize-image",
+        {
+          filePath: req.file?.path,
+          fileName: `${splitFileName}.webp`,
+          width: 835,
+          height: 577,
+          quality: 100,
+        },
+        {
+          attempts: 3,
+          backoff: {
+            type: "exponential",
+            delay: 1000,
+          },
+        }
+      );
+
+      const optimizeFile = post.image.split(".")[0] + ".webp";
+      await removeFile(post.image, optimizeFile);
+    }
+
+    const postUpdated = await updateOnePost(post.id, data);
 
     res.status(200).json({
       message: "Successfully update one post",
-      postId:postUpdated.id
-    })
+      postId: postUpdated.id,
+    });
   },
 ];
 
 export const deletePost = [
-  body("phone", "Invalid phone number")
-    .trim()
-    .notEmpty()
-    .matches("^[0-9]+$")
-    .isLength({ min: 5, max: 12 }),
+  body("postId", "podtId is required").trim().notEmpty().isInt({ min: 1 }),
 
   async (req: CutomerRequest, res: Response, next: NextFunction) => {
     // if validaiton errors occur
@@ -263,5 +261,36 @@ export const deletePost = [
     if (errors.length > 0) {
       return next(createError(errors[0].msg, 400, errorCode.invalid));
     }
+
+    const { postId } = req.body;
+    const userId = req.userId;
+
+    const user = await getUserById(userId!);
+    checkUserIfNotExits(user);
+
+    const post = await getPostById(+postId);
+    checkModelIfExit(post);
+
+    if(user!.id !== post!.authorId){
+   return next(
+    createError(
+      "this actione is not alowed",
+      409,
+      errorCode.unauthorised
+    )
+   )
+    };
+
+
+    const postDeleted = await deleteOnePost(post!.id);
+
+    const optimizeFile =post!.image.split('.')[0] + ".webp";
+    await removeFile(post!.image,optimizeFile)
+
+    res.status(200).json({
+      message: "Succefully delete post",
+      postId:postDeleted.id
+    })
   },
+
 ];
