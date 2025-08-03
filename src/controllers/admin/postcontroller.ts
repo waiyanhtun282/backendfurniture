@@ -253,7 +253,7 @@ export const updatePost = [
 ];
 
 export const deletePost = [
-  body("postId", "podtId is required").trim().notEmpty().isInt({ min: 1 }),
+  body("postId", "postId is required").isInt({ gt: 0 }),
 
   async (req: CutomerRequest, res: Response, next: NextFunction) => {
     // if validaiton errors occur

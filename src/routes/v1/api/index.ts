@@ -9,7 +9,11 @@ import {
 } from "../../../controllers/api/profileController";
 import { auth } from '../../../middlewares/auth';
 import upload, { uploadMemory } from '../../../middlewares/uploadFile';
-import { getPost, getPostByPagination } from '../../../controllers/api/postController';
+import {
+  getPost,
+  getPostByPagination,
+  getInfinitePostByPagination,
+} from "../../../controllers/api/postController";
 
 const router =express.Router();
 
@@ -26,6 +30,8 @@ router.patch('/profile/upload/multiple', auth, upload.array('avatar'), MultipleU
 router.get('/profile/my-photo',myPhoto) //just testing
 
 router.get('/posts',auth,getPostByPagination);
+router.get('/posts/infinite',auth,getInfinitePostByPagination);
+
 router.get('/posts/:id', auth, getPost);
 
 
