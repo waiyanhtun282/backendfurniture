@@ -1,4 +1,4 @@
-import {prisma} from "./prismaClient";
+import { prisma } from "./prismaClient";
 
  
 export type PostArgs ={
@@ -153,4 +153,9 @@ export const getPostWithRealationships = async ( id :number ) =>{
 
     }
   })
-}
+};
+
+
+export const getPostsList = async (options: any) => {
+  return prisma.post.findMany(options);
+};

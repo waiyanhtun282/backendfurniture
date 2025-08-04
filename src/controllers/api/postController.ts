@@ -1,10 +1,10 @@
 import { Response, Request, NextFunction } from "express";
-import { body, param, validationResult } from "express-validator";
+import { body, param, query, validationResult } from "express-validator";
 import { errorCode } from "../../../config/errorCode";
 import { createError } from "../../utlis/error";
 import { checkUserIfNotExits } from "../../utlis/auth";
 import { getUserById } from "../../services/authService";
-import { getPostById, getPostWithRealationships } from "../../services/postService";
+import {  getPostsList, getPostWithRealationships } from "../../services/postService";
 
 interface CutomerRequest extends Request {
   userId?: number;
@@ -56,22 +56,70 @@ export const getPost = [
   },
 ];
 
-export const getPostByPagination = [
-  body("phone", "Invalid phone number")
-    .trim()
-    .notEmpty()
-    .matches("^[0-9]+$")
-    .isLength({ min: 5, max: 12 }),
 
-  async (req: Request, res: Response, next: NextFunction) => {
+//offsetpagination
+export const getPostByPagination = [
+  query("page", "Page number must be unsigined  integer").isInt({ gt : 0 }).optional(),
+  query("limit", "Limit must be unsingned integer").isInt({ gt: 4 }).optional(),
+
+  async (req: CutomerRequest, res: Response, next: NextFunction) => {
     // if validaiton errors occur
     const errors = validationResult(req).array({ onlyFirstError: true });
     if (errors.length > 0) {
       return next(createError(errors[0].msg, 400, errorCode.invalid));
     }
+     
+    const page =req.query.page || 1;
+    const limit =req.query.limit || 5;
+
+    const userId =req.userId;
+    const user = await getUserById(userId!);
+    checkUserIfNotExits(user);
+
+    const skip = (+page-1) * +limit; // 2-1 * 5
+
+    const options =  {
+           skip,
+           take: +limit +1,
+           select :{
+            id: true,
+            title:true,
+            content:true,
+            image:true,
+            updatedAt:true,
+            author :{
+              select:{
+
+                fullName:true,
+              }
+            }
+           },
+           orderBy: {
+            updatedAt: "desc"
+           }
+
+    };
+
+    
+    const posts = await getPostsList(options)
+
+    const hashNextPage = posts.length > +limit; //6 >5
+    let nextPage =null;
+    const previousePage = +page !== 1 ? +page - 1 : null;
+
+
+    if(hashNextPage) {
+      posts.pop();
+      nextPage = +page + 1;
+    }
 
     res.status(200).json({
-        message:"OK"
+        message:"Get all Posts",
+        currentPage:page,
+        hashNextPage,
+        nextPage,
+        previousePage,
+        posts
     })
   },
 ];

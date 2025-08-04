@@ -29,8 +29,8 @@ router.patch('/profile/upload/multiple', auth, upload.array('avatar'), MultipleU
 
 router.get('/profile/my-photo',myPhoto) //just testing
 
-router.get('/posts',auth,getPostByPagination);
-router.get('/posts/infinite',auth,getInfinitePostByPagination);
+router.get('/posts',auth,getPostByPagination); //offeset pagination
+router.get('/posts/infinite',auth,getInfinitePostByPagination); //cursor-base pagination
 
 router.get('/posts/:id', auth, getPost);
 
