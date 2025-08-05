@@ -1,5 +1,5 @@
 import { Response, Request, NextFunction } from "express";
-import { body, param, query, validationResult } from "express-validator";
+import {  param, query, validationResult } from "express-validator";
 import { errorCode } from "../../../config/errorCode";
 import { createError } from "../../utlis/error";
 import { checkUserIfNotExits } from "../../utlis/auth";
@@ -126,21 +126,61 @@ export const getPostByPagination = [
 
 
 export const getInfinitePostByPagination = [
-  body("phone", "Invalid phone number")
-    .trim()
-    .notEmpty()
-    .matches("^[0-9]+$")
-    .isLength({ min: 5, max: 12 }),
+  query("cursor", "Cursor must be Post ID").isInt({ gt: 0 }).optional(),
+  query("limit", "Limit must be unsingned integer").isInt({ gt: 4 }).optional(),
 
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: CutomerRequest, res: Response, next: NextFunction) => {
     // if validaiton errors occur
     const errors = validationResult(req).array({ onlyFirstError: true });
     if (errors.length > 0) {
       return next(createError(errors[0].msg, 400, errorCode.invalid));
     }
 
+    const lastCursor = req.query.cursor;
+    const limit = req.query.limit || 5;
+
+    const userId = req.userId;
+    const user = await getUserById(userId!);
+    checkUserIfNotExits(user);
+
+
+    const options = {
+      take: +limit + 1,
+      skip: lastCursor ? 1 : 0,
+      cursor: lastCursor ? { id: +lastCursor} :undefined,
+      select: {
+        id: true,
+        title:true,
+        content:true,
+        image:true,
+        updatedAt:true,
+        author:{
+          select:{
+            fullName:true,
+          }
+        }
+      },
+      orderBy:{
+        id:'asc'
+      }
+
+    };
+   
+    const posts = await getPostsList(options);
+
+    const hashNextPage =posts.length > +limit;
+
+    if(hashNextPage){
+      posts.pop()
+    }
+
+    const newCursor = posts.length > 0 ? posts[posts.length -1 ] :undefined;
+
     res.status(200).json({
-      message: "OK",
+      message: "Get All infinit Posts",
+     hashNextPage,
+     newCursor,
+     posts
     });
   },
 ];
