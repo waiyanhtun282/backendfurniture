@@ -1,10 +1,14 @@
 import { Response, Request, NextFunction } from "express";
-import {  param, query, validationResult } from "express-validator";
+import { param, query, validationResult } from "express-validator";
 import { errorCode } from "../../../config/errorCode";
 import { createError } from "../../utlis/error";
 import { checkUserIfNotExits } from "../../utlis/auth";
 import { getUserById } from "../../services/authService";
-import {  getPostsList, getPostWithRealationships } from "../../services/postService";
+import {
+  getPostsList,
+  getPostWithRealationships,
+} from "../../services/postService";
+import { getOrSetCache } from "../../utlis/cache";
 
 interface CutomerRequest extends Request {
   userId?: number;
@@ -26,7 +30,11 @@ export const getPost = [
     checkUserIfNotExits(user);
     // const post = await getPostById(+postId);
 
-    const post = await getPostWithRealationships(+postId);
+    // const post = await getPostWithRealationships(+postId);
+    const cacheKey = `posts:${JSON.stringify(postId)}`;
+    const post = await getOrSetCache(cacheKey, async () => {
+      return await getPostWithRealationships(+postId);
+    });
 
     // const modifiedPost ={
     //   id:post!.id,
@@ -45,8 +53,6 @@ export const getPost = [
     //   type:post?.type.name,
     //   tags:post?.tags && post.tags.length > 0 ? post.tags.map((i) => i.name) :null
 
-
-
     // }
 
     res.status(200).json({
@@ -56,10 +62,11 @@ export const getPost = [
   },
 ];
 
-
 //offsetpagination
 export const getPostByPagination = [
-  query("page", "Page number must be unsigined  integer").isInt({ gt : 0 }).optional(),
+  query("page", "Page number must be unsigined  integer")
+    .isInt({ gt: 0 })
+    .optional(),
   query("limit", "Limit must be unsingned integer").isInt({ gt: 4 }).optional(),
 
   async (req: CutomerRequest, res: Response, next: NextFunction) => {
@@ -68,62 +75,61 @@ export const getPostByPagination = [
     if (errors.length > 0) {
       return next(createError(errors[0].msg, 400, errorCode.invalid));
     }
-     
-    const page =req.query.page || 1;
-    const limit =req.query.limit || 5;
 
-    const userId =req.userId;
+    const page = req.query.page || 1;
+    const limit = req.query.limit || 5;
+
+    const userId = req.userId;
     const user = await getUserById(userId!);
     checkUserIfNotExits(user);
 
-    const skip = (+page-1) * +limit; // 2-1 * 5
+    const skip = (+page - 1) * +limit; // 2-1 * 5
 
-    const options =  {
-           skip,
-           take: +limit +1,
-           select :{
-            id: true,
-            title:true,
-            content:true,
-            image:true,
-            updatedAt:true,
-            author :{
-              select:{
-
-                fullName:true,
-              }
-            }
-           },
-           orderBy: {
-            updatedAt: "desc"
-           }
-
+    const options = {
+      skip,
+      take: +limit + 1,
+      select: {
+        id: true,
+        title: true,
+        content: true,
+        image: true,
+        updatedAt: true,
+        author: {
+          select: {
+            fullName: true,
+          },
+        },
+      },
+      orderBy: {
+        updatedAt: "desc",
+      },
     };
 
-    
-    const posts = await getPostsList(options)
+    // const posts = await getPostsList(options)
+    const cacheKey = `posts:${JSON.stringify(req.query)}`;
+    const posts = await getOrSetCache(cacheKey, async () => {
+      return await getPostsList(options);
+    });
 
     const hashNextPage = posts.length > +limit; //6 >5
-    let nextPage =null;
+    let nextPage = null;
     const previousePage = +page !== 1 ? +page - 1 : null;
 
-
-    if(hashNextPage) {
+    if (hashNextPage) {
       posts.pop();
       nextPage = +page + 1;
     }
 
     res.status(200).json({
-        message:"Get all Posts",
-        currentPage:page,
-        hashNextPage,
-        nextPage,
-        previousePage,
-        posts
-    })
+      message: "Get all Posts",
+      currentPage: page,
+      hashNextPage,
+      nextPage,
+      previousePage,
+      posts,
+    });
   },
 ];
-
 
 export const getInfinitePostByPagination = [
   query("cursor", "Cursor must be Post ID").isInt({ gt: 0 }).optional(),
@@ -143,44 +149,45 @@ export const getInfinitePostByPagination = [
     const user = await getUserById(userId!);
     checkUserIfNotExits(user);
 
-
     const options = {
       take: +limit + 1,
       skip: lastCursor ? 1 : 0,
-      cursor: lastCursor ? { id: +lastCursor} :undefined,
+      cursor: lastCursor ? { id: +lastCursor } : undefined,
       select: {
         id: true,
-        title:true,
-        content:true,
-        image:true,
-        updatedAt:true,
-        author:{
-          select:{
-            fullName:true,
-          }
-        }
+        title: true,
+        content: true,
+        image: true,
+        updatedAt: true,
+        author: {
+          select: {
+            fullName: true,
+          },
+        },
       },
-      orderBy:{
-        id:'asc'
-      }
-
+      orderBy: {
+        id: "desc",
+      },
     };
-   
-    const posts = await getPostsList(options);
 
-    const hashNextPage =posts.length > +limit;
+    // const posts = await getPostsList(options);
+    const cacheKey = `posts:${JSON.stringify(req.query)}`;
+    const posts = await getOrSetCache(cacheKey, async () => {
+      return await getPostsList(options);
+    });
+    const hashNextPage = posts.length > +limit;
 
-    if(hashNextPage){
-      posts.pop()
+    if (hashNextPage) {
+      posts.pop();
     }
 
-    const newCursor = posts.length > 0 ? posts[posts.length -1 ] :undefined;
+    const newCursor = posts.length > 0 ? posts[posts.length - 1].id : undefined;
 
     res.status(200).json({
       message: "Get All infinit Posts",
-     hashNextPage,
-     newCursor,
-     posts
+      hashNextPage,
+      newCursor,
+      posts,
     });
   },
 ];
