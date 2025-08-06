@@ -1,8 +1,9 @@
 import express from 'express';
 import { getAllUsers } from '../../../controllers/admin/userControllers';
 import { setMaintenance } from '../../../controllers/admin/systemController';
-import { createPost, deletePost, updatePost } from '../../../controllers/admin/postcontroller';
+
 import upload from '../../../middlewares/uploadFile';
+import { createPost, deletePost, updatePost } from '../../../controllers/admin/postcontroller';
 
 const router =express.Router();
 
