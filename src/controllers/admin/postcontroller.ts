@@ -16,6 +16,7 @@ import {
   updateOnePost,
 } from "../../services/postService";
 import { checkUserIfNotExits } from "../../utlis/auth";
+import { CacheQueue } from "../../jobs/queues/cacheQueue";
 
 interface CutomerRequest extends Request {
   userId?: number;
@@ -129,6 +130,13 @@ export const createPost = [
     };
 
     const post = await createOnePost(data);
+
+     await CacheQueue.add("invalidate-cache",{
+      pattern:"posts:*",
+     },{
+      jobId:`Invalidate-${Date.now()}`,
+      priority:1,
+     })
 
     res.status(201).json({
       message: "Successfully create new post;",
@@ -245,6 +253,17 @@ export const updatePost = [
 
     const postUpdated = await updateOnePost(post.id, data);
 
+    await CacheQueue.add(
+      "invalidate-cache",
+      {
+        pattern: "posts:*",
+      },
+      {
+        jobId: `Invalidate-${Date.now()}`,
+        priority: 1,
+      }
+    );
+
     res.status(200).json({
       message: "Successfully update one post",
       postId: postUpdated.id,
@@ -285,7 +304,18 @@ export const deletePost = [
     const postDeleted = await deleteOnePost(post!.id);
 
     const optimizeFile =post!.image.split('.')[0] + ".webp";
-    await removeFile(post!.image,optimizeFile)
+    await removeFile(post!.image,optimizeFile);
+
+    await CacheQueue.add(
+      "invalidate-cache",
+      {
+        pattern: "posts:*",
+      },
+      {
+        jobId: `Invalidate-${Date.now()}`,
+        priority: 1,
+      }
+    );
 
     res.status(200).json({
       message: "Succefully delete post",
