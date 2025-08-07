@@ -2,7 +2,7 @@ import { Response, Request, NextFunction } from "express";
 import { body, query, validationResult } from "express-validator";
 import sanitizeHtml from "sanitize-html";
 import path from "path";
-import { unlink } from "fs/promises";
+import { unlink } from "node:fs/promises";
 import { errorCode } from "../../../config/errorCode";
 import { createError } from "../../utlis/error";
 import { getUserById } from "../../services/authService";
@@ -18,7 +18,7 @@ import {
 import { checkUserIfNotExits } from "../../utlis/auth";
 import { CacheQueue } from "../../jobs/queues/cacheQueue";
 
-interface CutomerRequest extends Request {
+interface CustomerRequest extends Request {
   userId?: number;
   user?:any;
 }
@@ -69,7 +69,7 @@ export const createPost = [
       return value;
     }),
 
-  async (req: CutomerRequest, res: Response, next: NextFunction) => {
+  async (req: CustomerRequest, res: Response, next: NextFunction) => {
     // if validaiton errors occur
     const errors = validationResult(req).array({ onlyFirstError: true });
     if (errors.length > 0) {
@@ -132,7 +132,7 @@ const user =req.user;
 
     const post = await createOnePost(data);
 
-     await CacheQueue.add("invalidate-cache",{
+     await CacheQueue.add("invalidate-post-cache",{
       pattern:"posts:*",
      },{
       jobId:`Invalidate-${Date.now()}`,
@@ -164,7 +164,7 @@ export const updatePost = [
       }
       return value;
     }),
-  async (req: CutomerRequest, res: Response, next: NextFunction) => {
+  async (req: CustomerRequest, res: Response, next: NextFunction) => {
     const errors = validationResult(req).array({ onlyFirstError: true });
     if (errors.length > 0) {
       if (req.file) {
@@ -257,7 +257,7 @@ export const updatePost = [
     const postUpdated = await updateOnePost(post.id, data);
 
     await CacheQueue.add(
-      "invalidate-cache",
+      "invalidate-post-cache",
       {
         pattern: "posts:*",
       },
@@ -277,7 +277,7 @@ export const updatePost = [
 export const deletePost = [
   body("postId", "postId is required").isInt({ gt: 0 }),
 
-  async (req: CutomerRequest, res: Response, next: NextFunction) => {
+  async (req: CustomerRequest, res: Response, next: NextFunction) => {
     // if validaiton errors occur
     const errors = validationResult(req).array({ onlyFirstError: true });
     if (errors.length > 0) {

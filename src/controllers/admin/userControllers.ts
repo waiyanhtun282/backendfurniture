@@ -1,10 +1,10 @@
 
 import { Request, Response, NextFunction } from "express";
-interface CustomRequest extends Request {
+interface CustomerRequest extends Request {
   user?: any;
 }
 export const getAllUsers = async (
-  req: CustomRequest,
+  req: CustomerRequest,
   res: Response,
   next: NextFunction
 ) => {

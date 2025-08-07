@@ -4,12 +4,12 @@ import { createError } from "../../utlis/error";
 import { errorCode } from "../../../config/errorCode";
 import { createOrUpdateSettingStatus } from "../../services/settingService";
 
-interface CustomRequest extends Request {
+interface CustomerRequest extends Request {
   user?: any;
 }
 export const setMaintenance = [
   body("mode", "Mode must be boolean ").isBoolean(),
-  async (req: CustomRequest, res: Response, next: NextFunction) => {
+  async (req: CustomerRequest, res: Response, next: NextFunction) => {
     const errors = validationResult(req).array({ onlyFirstError: true });
     
       if (errors.length > 0) {
