@@ -3,7 +3,7 @@ import { getAllUsers } from '../../../controllers/admin/userControllers';
 import { setMaintenance } from '../../../controllers/admin/systemController';
 import upload from '../../../middlewares/uploadFile';
 import { createPost, deletePost, updatePost } from '../../../controllers/admin/postController';
-import { createProduct ,updateProduct} from '../../../controllers/admin/productController';
+import { createProduct ,deleteProduct,updateProduct} from '../../../controllers/admin/productController';
 
 const router =express.Router();
 
@@ -19,7 +19,7 @@ router.delete("/posts", upload.single("image"), deletePost);
 //CRUD for Products
 router.post("/products",upload.array("images", 4 ),createProduct);
 router.patch("/prodcuts", upload.array("images" , 4), updateProduct);
-// router.delete("/prodcuts", deleteProducts);
+router.delete("/prodcuts", deleteProduct);
 
 
 export  default router;

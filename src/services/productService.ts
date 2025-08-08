@@ -1,6 +1,18 @@
 import{ prisma} from "./prismaClient";
 
-export const createOneProduct = async (data: any) => {
+export type ProductInput= {
+  name: string;
+  description: string;
+  price: number;
+  discount: number;
+  inventory: number;
+  category: string;
+  type: string;
+  tags?: string[];
+  images?: { path: string }[];
+}
+
+export const createOneProduct = async (data: ProductInput) => {
   const productdata: any = {
     name: data.name,
     description: data.description,
@@ -51,7 +63,7 @@ export const getProductById = async (id: number) =>{
 }
 
 
-export const updateOneProduct = async (productId: number, data: any) => {
+export const updateOneProduct = async (productId: number, data: ProductInput) => {
   const productdata: any = {
     name: data.name,
     description: data.description,

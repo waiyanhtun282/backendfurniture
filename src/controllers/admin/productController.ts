@@ -11,6 +11,7 @@ import {
   createOneProduct,
   deleteOneProduct,
   getProductById,
+  ProductInput,
   updateOneProduct,
 } from "../../services/productService";
 
@@ -131,7 +132,7 @@ export const createProduct = [
       path: file.filename,
     }));
 
-    const data: any = {
+    const data: ProductInput = {
       name,
       description,
       price,
@@ -227,7 +228,7 @@ export const updateProduct = [
       }));
     }
 
-    const data: any = {
+    const data: ProductInput = {
       name,
       description,
       price,
