@@ -147,7 +147,7 @@ const user =req.user;
 ];
 
 export const updatePost = [
-  body("postId", "podtId is required").trim().notEmpty().isInt({ min: 1 }),
+  body("postId", "podtId is required").isInt({ min: 1 }),
   body("content", "Content is required").trim().notEmpty().escape(),
   body("body", "Body is required")
     .trim()

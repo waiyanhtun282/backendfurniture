@@ -1,10 +1,9 @@
 import express from 'express';
 import { getAllUsers } from '../../../controllers/admin/userControllers';
 import { setMaintenance } from '../../../controllers/admin/systemController';
-
 import upload from '../../../middlewares/uploadFile';
-import { createPost, deletePost, updatePost } from '../../../controllers/admin/postcontroller';
-import { createProduct } from '../../../controllers/admin/productController';
+import { createPost, deletePost, updatePost } from '../../../controllers/admin/postController';
+import { createProduct ,updateProduct} from '../../../controllers/admin/productController';
 
 const router =express.Router();
 
@@ -18,8 +17,8 @@ router.patch("/posts", upload.single("image"), updatePost);
 router.delete("/posts", upload.single("image"), deletePost);
 
 //CRUD for Products
-router.post("/products",upload.array("image", 4 ),createProduct);
-// router.patch("/prodcuts", upload.array("images"), updateProucts);
+router.post("/products",upload.array("images", 4 ),createProduct);
+router.patch("/prodcuts", upload.array("images" , 4), updateProduct);
 // router.delete("/prodcuts", deleteProducts);
 
 
