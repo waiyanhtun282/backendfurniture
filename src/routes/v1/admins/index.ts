@@ -18,8 +18,8 @@ router.delete("/posts", upload.single("image"), deletePost);
 
 //CRUD for Products
 router.post("/products",upload.array("images", 4 ),createProduct);
-router.patch("/prodcuts", upload.array("images" , 4), updateProduct);
-router.delete("/prodcuts", deleteProduct);
+router.patch("/products", upload.array("images" , 4), updateProduct);
+router.delete("/products", deleteProduct);
 
 
 export  default router;

@@ -1,18 +1,8 @@
 import{ prisma} from "./prismaClient";
 
-export type ProductInput= {
-  name: string;
-  description: string;
-  price: number;
-  discount: number;
-  inventory: number;
-  category: string;
-  type: string;
-  tags?: string[];
-  images?: { path: string }[];
-}
 
-export const createOneProduct = async (data: ProductInput) => {
+
+export const createOneProduct = async (data: any) => {
   const productdata: any = {
     name: data.name,
     description: data.description,
@@ -63,7 +53,7 @@ export const getProductById = async (id: number) =>{
 }
 
 
-export const updateOneProduct = async (productId: number, data: ProductInput) => {
+export const updateOneProduct = async (productId: number, data: any) => {
   const productdata: any = {
     name: data.name,
     description: data.description,
@@ -113,8 +103,8 @@ export const updateOneProduct = async (productId: number, data: ProductInput) =>
   });
 };
 
-export const deleteOneProduct = async(productId:number) =>{
+export const deleteOneProduct = async ( productId: number) =>{
  return await prisma.product.delete({
-  where: {id: productId}
+  where: { id: productId }
  })
 }
