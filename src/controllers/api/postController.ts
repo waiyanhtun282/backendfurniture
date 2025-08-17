@@ -9,6 +9,7 @@ import {
   getPostWithRealationships,
 } from "../../services/postService";
 import { getOrSetCache } from "../../utlis/cache";
+import { checkModelIfExit } from "../../utlis/check";
 
 interface CutomerRequest extends Request {
   userId?: number;
@@ -35,6 +36,7 @@ export const getPost = [
     const post = await getOrSetCache(cacheKey, async () => {
       return await getPostWithRealationships(+postId);
     });
+    checkModelIfExit(post);
 
     // const modifiedPost ={
     //   id:post!.id,

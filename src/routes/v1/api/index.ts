@@ -14,6 +14,7 @@ import {
   getPostByPagination,
   getInfinitePostByPagination,
 } from "../../../controllers/api/postController";
+import { getProduct } from '../../../controllers/api/productController';
 
 const router =express.Router();
 
@@ -31,8 +32,15 @@ router.get('/profile/my-photo',myPhoto) //just testing
 
 router.get('/posts',auth,getPostByPagination); //offeset pagination
 router.get('/posts/infinite',auth,getInfinitePostByPagination); //cursor-base pagination
-
+//posts
 router.get('/posts/:id', auth, getPost);
+
+//products
+router.get("/products/:id", auth, getProduct);
+
+
+
+
 
 
 export  default router;
