@@ -14,7 +14,7 @@ import {
   getPostByPagination,
   getInfinitePostByPagination,
 } from "../../../controllers/api/postController";
-import { getProduct } from '../../../controllers/api/productController';
+import { getProduct, getProductsByPagination } from '../../../controllers/api/productController';
 
 const router =express.Router();
 
@@ -37,6 +37,8 @@ router.get('/posts/:id', auth, getPost);
 
 //products
 router.get("/products/:id", auth, getProduct);
+router.get('/products',auth,getProductsByPagination); //cursor-base pagination
+
 
 
 

@@ -113,11 +113,24 @@ export const deleteOneProduct = async ( productId: number) =>{
 export const getProductWithRealationships =async (id: number) => {
   return prisma.product.findUnique({
     where: { id },
-    // include: {
-    //   category: true,
-    //   type: true,
-    //   tags: true,
-    //   images: true,
-    // },
+    omit: {
+      categoryId: true,
+      typeId: true,
+      createdAt: true,
+      updatedAt:true
+    },
+    include :{
+      images:{
+        select:{
+          id:true,
+          path:true
+        }
+      },
+     
+    }
   })
 }
+
+export const getProdutsList = async (options: any) => {
+  return prisma.product.findMany(options);
+};
