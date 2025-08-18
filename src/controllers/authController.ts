@@ -322,12 +322,14 @@ export const confirmPassword = [
         secure: process.env.NODE_ENV === "production",
         sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
         maxAge: 60 * 15 * 1000, // 15 minutes
+        path: "/", //root path for the cookie
       })
       .cookie("refreshToken", refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
         maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+        path: "/", //root path for the cookie
       })
       .status(201)
       .json({
@@ -452,12 +454,14 @@ export const login = [
         secure: process.env.NODE_ENV === "production",
         sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
         maxAge: 60 * 15 * 1000, // 15 minutes
+        path: "/", //root path for the cookie
       })
       .cookie("refreshToken", refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
         maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+        path: "/", //root path for the cookie
       })
       .status(200)
       .json({ message: "Login Successfully", userId: user!.id });
@@ -527,12 +531,14 @@ export const logout = async (
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+    path: "/", //root path for the cookie
   });
   // clear refresh token cookie
   res.clearCookie("refreshToken", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+    path: "/", //root path for the cookie
   });
 
   res.status(200).json({ message: "Successfully logged out.See you soon" });
@@ -818,23 +824,26 @@ export const verifyOtpForPassword =[
 
      await updateUser(user!.id, userUpdateData);
 
-     res.cookie("accessToken", accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "none",
-        maxAge: 60 * 15 * 1000, // 15 minutes
-      })
-      .cookie("refreshToken", refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "none",
-        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-      })
-      .status(200)
-      .json({ 
-        message: "Password reset successfully" ,
-        userId:user!.id,
-      });
+     res
+       .cookie("accessToken", accessToken, {
+         httpOnly: true,
+         secure: process.env.NODE_ENV === "production",
+         sameSite: "none",
+         maxAge: 60 * 15 * 1000, // 15 minutes
+         path: "/", //root path for the cookie
+       })
+       .cookie("refreshToken", refreshToken, {
+         httpOnly: true,
+         secure: process.env.NODE_ENV === "production",
+         sameSite: "none",
+         maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+         path: "/", //root path for the cookie
+       })
+       .status(200)
+       .json({
+         message: "Password reset successfully",
+         userId: user!.id,
+       });
      }
   
 ];
