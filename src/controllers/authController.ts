@@ -21,6 +21,10 @@ import moment from "moment";
 import jwt from "jsonwebtoken";
 import { errorCode } from "../../config/errorCode";
 import { createError } from "../utlis/error";
+interface CutomerRequest extends Request {
+  userId?: number;
+  file?: any;
+}
 
 export const register = [
   body("phone", "Invalid phone number")
@@ -847,3 +851,16 @@ export const verifyOtpForPassword =[
      }
   
 ];
+
+export const authCheck = async (
+  req: CutomerRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  const userId = req.userId;
+  const user = await getUserById(userId!);
+  checkUserIfNotExits(user);
+
+ 
+  res.status(200).json({ messge: "You are authenticated user", userId: user!.id, name: user?.firstName + "" + user?.lastName, image:user?.image });
+};
