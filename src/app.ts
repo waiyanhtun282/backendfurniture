@@ -69,6 +69,11 @@ app
 
   app.use(middleware.handle(i18next))
 
+
+  app.use((req ,res, next) =>{
+    res.setHeader("Cross-Origin-Resource-Policy", "same-site");
+   next();
+  })
 // interface CutomerRequest extends Request {
 //   userId?: number;
 // }

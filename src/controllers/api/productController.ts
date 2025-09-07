@@ -144,12 +144,14 @@ export const getProductsByPagination = [
       products.pop();
     }
 
-    const newCursor = products.length > 0 ? products[products.length - 1].id : undefined;
+    const nextCursor = products.length > 0 ? products[products.length - 1].id : undefined;
+
 
     res.status(200).json({
       message: "Get All infinit Posts",
       hashNextPage,
-      newCursor,
+      nextCursor,
+      prevCursor:lastCursor,
       products,
     });
   },

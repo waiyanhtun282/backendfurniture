@@ -183,12 +183,13 @@ export const getInfinitePostByPagination = [
       posts.pop();
     }
 
-    const newCursor = posts.length > 0 ? posts[posts.length - 1].id : undefined;
+    const nextCursor = posts.length > 0 ? posts[posts.length - 1].id : undefined;
 
     res.status(200).json({
       message: "Get All infinit Posts",
       hashNextPage,
-      newCursor,
+      nextCursor,
+      prevCursor:lastCursor,
       posts,
     });
   },
