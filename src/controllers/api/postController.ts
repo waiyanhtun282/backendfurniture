@@ -69,7 +69,7 @@ export const getPostByPagination = [
   query("page", "Page number must be unsigined  integer")
     .isInt({ gt: 0 })
     .optional(),
-  query("limit", "Limit must be unsingned integer").isInt({ gt: 4 }).optional(),
+  query("limit", "Limit must be unsingned integer").isInt({ gt: 2 }).optional(),
 
   async (req: CutomerRequest, res: Response, next: NextFunction) => {
     // if validaiton errors occur
@@ -135,7 +135,7 @@ export const getPostByPagination = [
 
 export const getInfinitePostByPagination = [
   query("cursor", "Cursor must be Post ID").isInt({ gt: 0 }).optional(),
-  query("limit", "Limit must be unsingned integer").isInt({ gt: 4 }).optional(),
+  query("limit", "Limit must be unsingned integer").isInt({ gt: 2 }).optional(),
 
   async (req: CutomerRequest, res: Response, next: NextFunction) => {
     // if validaiton errors occur
