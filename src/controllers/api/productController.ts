@@ -117,6 +117,7 @@ export const getProductsByPagination = [
       select: {
         id: true,
         name: true,
+        description:true,
         price: true,
         discount: true,
         status: true,
