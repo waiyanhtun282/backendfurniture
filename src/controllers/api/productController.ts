@@ -7,7 +7,7 @@ import { getUserById } from "../../services/authService";
 
 import { getOrSetCache } from "../../utlis/cache";
 import { checkModelIfExit } from "../../utlis/check";
-import { getProductWithRealationships, getProdutsList } from "../../services/productService";
+import { getCategoryList, getProductWithRealationships, getProdutsList, getTypeList } from "../../services/productService";
 
 interface CutomerRequest extends Request {
   userId?: number;
@@ -157,3 +157,18 @@ export const getProductsByPagination = [
     });
   },
 ];
+
+  export const getCategoryType= async (req: CutomerRequest, res: Response, next: NextFunction) => {  
+    const userId = req.userId;
+    const user = await getUserById(userId!); 
+    checkUserIfNotExits(user);
+
+    const categories  = await getCategoryList();
+    const types       = await getTypeList();
+    
+    res.status(200).json({
+      message: "Get Category and Type",
+      categories,
+      types,
+    })
+  }

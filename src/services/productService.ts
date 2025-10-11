@@ -134,3 +134,10 @@ export const getProductWithRealationships =async (id: number) => {
 export const getProdutsList = async (options: any) => {
   return prisma.product.findMany(options);
 };
+
+export const getCategoryList = async () => {
+  return prisma.category.findMany();
+}
+export const getTypeList = async () => {
+  return prisma.type.findMany();
+}
