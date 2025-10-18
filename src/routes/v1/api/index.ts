@@ -8,7 +8,7 @@ import {
   uploadProfileOptimize,
 } from "../../../controllers/api/profileController";
 import { auth } from '../../../middlewares/auth';
-import upload, { uploadMemory } from '../../../middlewares/uploadFile';
+import upload from '../../../middlewares/uploadFile';
 import {
   getPost,
   getPostByPagination,
