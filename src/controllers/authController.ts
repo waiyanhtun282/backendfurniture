@@ -319,7 +319,7 @@ export const confirmPassword = [
     };
 
     await updateUser(newUser.id, userUpdateData);
-ggggggggggggggggggggggggg
+
     res
       .cookie("accessToken", accessToken, {
         httpOnly: true,
