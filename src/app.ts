@@ -21,8 +21,8 @@ app.set('view engine', 'ejs');
 app.set('views', 'src/views');
 
 
-var whitelist = ["http://example1.com", "http://localhost:5173"];
-var corsOptions = {
+const whitelist = ["http://example1.com", "http://localhost:5173"];
+const corsOptions = {
   origin: function (origin:any, callback: (err:Error | null ,origin?:any) =>void ) {
     
     if(!origin)  return callback(null, true); // Allow requests with origin (like mobile apps or Postman)
