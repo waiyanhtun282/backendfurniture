@@ -14,7 +14,7 @@ import {
   getPostByPagination,
   getInfinitePostByPagination,
 } from "../../../controllers/api/postController";
-import { getCategoryType, getProduct, getProductsByPagination } from '../../../controllers/api/productController';
+import { getCategoryType, getProduct, getProductsByPagination, toggleFavourite } from '../../../controllers/api/productController';
 
 const router =express.Router();
 
@@ -38,9 +38,9 @@ router.get('/posts/:id', auth, getPost);
 //products
 router.get("/products/:id", auth, getProduct);
 router.get('/products',auth,getProductsByPagination); //cursor-base pagination
+router.patch('/products/toggle-favourite',auth ,toggleFavourite)
 
 router.get('/filter-type',auth,getCategoryType)
-
 
 
 
