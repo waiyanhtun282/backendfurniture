@@ -110,7 +110,7 @@ export const deleteOneProduct = async ( productId: number) =>{
 };
 
 
-export const getProductWithRealationships =async (id: number) => {
+export const getProductWithRealationships =async (id: number,userId:number) => {
   return prisma.product.findUnique({
     where: { id },
     omit: {
@@ -126,6 +126,14 @@ export const getProductWithRealationships =async (id: number) => {
           path:true
         }
       },
+      users:{
+          where:{
+            id:userId
+          },
+          select:{
+            id:true
+          },
+      }
      
     }
   })

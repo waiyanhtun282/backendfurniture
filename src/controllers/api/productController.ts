@@ -34,7 +34,7 @@ export const getProduct = [
     // const post = await getPostWithRealationships(+postId);
     const cacheKey = `products:${JSON.stringify(productId)}`;
     const product = await getOrSetCache(cacheKey, async () => {
-      return await getProductWithRealationships(+productId);
+      return await getProductWithRealationships(+productId,user!.id);
     });
     checkModelIfExit(product);
 
