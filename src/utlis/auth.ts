@@ -1,6 +1,6 @@
 import {errorCode} from  "../../config/errorCode";
 
-export const checkUserExits =  (user: any) => {
+export const  checkUserExits =  (user: any) => {
    if(user) {
         const error: any = new Error("This phone number has been already existed");
         error.status = 409;

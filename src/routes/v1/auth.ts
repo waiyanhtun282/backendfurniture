@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   authCheck,
+  changePassword,
   confirmPassword,
   forgetPassword,
   login,
@@ -24,5 +25,6 @@ router.post("/forget-password", forgetPassword);
 router.post("/verify", verifyOtpForPassword);
 router.post("/reset-password", resetPassword);
 
-router.get("/auth-check",auth , authCheck)
+router.get("/auth-check",auth , authCheck);
+router.post("/change-password", auth, changePassword);
 export default router;

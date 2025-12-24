@@ -14,7 +14,7 @@ export const createOTP = async (otpData: any) => {
   });
 };
 
-export const getOtpByPhone = async (phone: string) => {
+export const  getOtpByPhone = async (phone: string) => {
   return await prisma.otp.findUnique({
     where: { phone },
   });
