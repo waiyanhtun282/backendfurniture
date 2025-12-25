@@ -21,6 +21,7 @@ import moment from "moment";
 import jwt from "jsonwebtoken";
 import { errorCode } from "../../config/errorCode";
 import { createError } from "../utlis/error";
+
 interface CutomerRequest extends Request {
   userId?: number;
   file?: any;
@@ -812,96 +813,65 @@ export const authCheck = async (
 };
 
 export const changePassword = [
-  body("phone", "Invalid phone number")
+  body("currentPassword", "Please provide currentPassword must be 8 digits")
     .trim()
     .notEmpty()
-    .matches("^[0-9]+$")
-    .isLength({ min: 5, max: 12 }),
-  body("password", "Psaassword must be 8 digits")
+    .isLength({ min: 8 }),
+  body("newPassword", "NewPsaassword must be 8 digits")
     .trim()
     .notEmpty()
-    .matches("^[0-9]+$")
-    .isLength({ min: 8, max: 8 }),
-  body("token", "Invalid_Token").trim().notEmpty().escape(),
-  async (req: Request, res: Response, next: NextFunction) => {
+    .isLength({ min: 8 }),
+  body("confirmPassord", "pls provide confirmpasword must be 8 digits")
+    .trim()
+    .notEmpty()
+    .isLength({ min: 8 }),
+
+  async (req: CutomerRequest, res: Response, next: NextFunction) => {
     // if validaiton errors occur
     const errors = validationResult(req).array({ onlyFirstError: true });
     if (errors.length > 0) {
       return next(createError(errors[0].msg, 400, errorCode.invalid));
     }
-    const { phone, password, token, userId } = req.body;
-    
+    const { currentPassword, newPassword,confirmPassword } = req.body;
+    const userId = req.userId; 
+
     const user = await getUserById(userId!);
 
     checkUserIfNotExits(user);
-    
-    const userPhoneNumber = await getUserByPhone(phone);
 
+    if(newPassword !== confirmPassword){
+      return next(createError(
+        "New password and confirm password do not match",
+        400,errorCode.invalid));
+    };
 
-    // Otp occurs is over limit
+    if(currentPassword === newPassword){
+      return next(createError(
+        "Current password and new password cannot be the same",
+        400,errorCode.invalid));
+    };
 
-    // Token is wrong
+    const isMatchPassword = await bcrypt.compare(currentPassword, user!.password);
 
-    // required expired
+    if (!isMatchPassword) {
+      return next(createError(
+        "Current password is incorrect",
+        400,errorCode.invalid));
+    }
 
     const salt = await bcrypt.genSalt(10);
-    const hashPassword = await bcrypt.hash(password, salt);
+    const hashPassword = await bcrypt.hash(newPassword, salt);
 
-    const randomToken = "this token will be replace soon";
-
-    // create new account
     const userData = {
-      phone,
       password: hashPassword,
-      randomToken,
+      lastChangedPassword: new Date(),
     };
 
-    const newUser = await createUser(userData);
+    await updateUser(user!.id, userData);
 
-    const accessTokenPayload = { id: newUser.id };
-    const refreshTokenPayload = { id: newUser.id, phone: newUser.phone };
-
-    const accessToken = jwt.sign(
-      accessTokenPayload,
-      process.env.ACCESS_TOKEN_SECRET!,
-      {
-        expiresIn: 60 * 15, //15min
-      }
-    );
-    const refreshToken = jwt.sign(
-      refreshTokenPayload,
-      process.env.REFRESH_TOKEN_SECRET!,
-      {
-        expiresIn: "30d",
-      }
-    );
-
-    // updateing token with refrsh token
-    const userUpdateData = {
-      randomToken: refreshToken,
-    };
-
-    await updateUser(newUser.id, userUpdateData);
-
-    res
-      .cookie("accessToken", accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
-        maxAge: 60 * 15 * 1000, // 15 minutes
-        path: "/", //root path for the cookie
-      })
-      .cookie("refreshToken", refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
-        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-        path: "/", //root path for the cookie
-      })
-      .status(201)
-      .json({
-        message: "Your account is successfully created",
-        userId: newUser.id,
-      });
+    res.status(201).json({
+      message: "Password changed successfully",
+      // userId: user!.id,
+    });
   },
 ];
