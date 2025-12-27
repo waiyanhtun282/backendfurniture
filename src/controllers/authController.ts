@@ -864,7 +864,7 @@ export const changePassword = [
 
     const userData = {
       password: hashPassword,
-      lastChangedPassword: new Date(),
+      lastChangePassword: new Date(),
     };
 
     await updateUser(user!.id, userData);

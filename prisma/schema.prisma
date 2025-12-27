@@ -138,6 +138,7 @@ model User {
   orders          Order[]
   posts           Post[]
   products        Product[]
+  
 }
 
 model Image {

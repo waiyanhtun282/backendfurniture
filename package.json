@@ -4,7 +4,7 @@
   "main": "dist/index.js",
   "scripts": {
     "test": "jest",
-    "dev":"npm-run-all --parallel dev:node work cache",
+    "dev": "npm-run-all --parallel dev:node work cache",
     "dev:node": "nodemon src/index.ts",
     "work": "nodemon src/jobs/workers/imageWorker.ts",
     "cache": "nodemon src/jobs/workers/cacheWorker.ts",

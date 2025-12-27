@@ -250,7 +250,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "/home/leo/Desktop/fullstackcourse/furniture_backend/prisma/generated/prisma",
+      "value": "/home/leo/Desktop/fullstackcourse/backendfurniture/prisma/generated/prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -264,12 +264,11 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "/home/leo/Desktop/fullstackcourse/furniture_backend/prisma/schema.prisma",
+    "sourceFilePath": "/home/leo/Desktop/fullstackcourse/backendfurniture/prisma/schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
-    "rootEnvPath": null,
-    "schemaEnvPath": "../../../.env"
+    "rootEnvPath": null
   },
   "relativePath": "../..",
   "clientVersion": "6.14.0",
