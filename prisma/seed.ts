@@ -1,8 +1,9 @@
-import { PrismaClient, Prisma } from "./generated/prisma";
+import { prisma } from "../lib/prisma";
+
 import * as bcrypt from "bcrypt"; // Import bcryptjs for password hashi
 import { faker } from "@faker-js/faker";
 
-const prisma = new PrismaClient();
+
 // const userData: Prisma.UserCreateInput[] = [
 //   {
 //     phone: "778661260",
