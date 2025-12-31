@@ -4,11 +4,12 @@
   "main": "dist/index.js",
   "scripts": {
     "test": "jest",
+    "postinstall": "prisma generate",
     "dev": "npm-run-all --parallel dev:node work cache",
-    "dev:node": "nodemon src/index.ts",
-    "work": "nodemon src/jobs/workers/imageWorker.ts",
-    "cache": "nodemon src/jobs/workers/cacheWorker.ts",
-    "build": "tsc ",
+    "dev:node": "nodemon --exec npx tsx src/index.ts",
+    "work": "nodemon --exec npx tsx src/jobs/workers/imageWorker.ts",
+    "cache": "nodemon --exec npx tsx src/jobs/workers/cacheWorker.ts",
+    "build": "tsc",
     "start": "node dist/index.js"
   },
   "keywords": [],
@@ -38,7 +39,7 @@
     "ts-node": "^10.9.2",
     "tslib": "^2.8.1",
     "tsx": "^4.20.3",
-    "typescript": "^5.8.3"
+    "typescript": "^5.9.3"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.2.0",

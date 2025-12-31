@@ -142,6 +142,7 @@ model User {
   orders          Order[]
   posts           Post[]
   products        Product[]
+  lastChangePassword DateTime?
 }
 
 model Image {

@@ -1,6 +1,6 @@
-import { PrismaClient } from "../../prisma/generated/prisma";
+import { prisma } from "../../lib/prisma";
 
-const prisma = new PrismaClient();
+
 
 export const getSettingStatus = async (key: string) => {
   return await prisma.setting.findUnique({
@@ -8,7 +8,10 @@ export const getSettingStatus = async (key: string) => {
   });
 };
 
-export const  createOrUpdateSettingStatus = async (key: string, value: string) => {
+export const createOrUpdateSettingStatus = async (
+  key: string,
+  value: string
+) => {
   return await prisma.setting.upsert({
     where: { key },
     update: { value },
