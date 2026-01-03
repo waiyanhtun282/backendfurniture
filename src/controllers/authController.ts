@@ -821,7 +821,7 @@ export const changePassword = [
     .trim()
     .notEmpty()
     .isLength({ min: 8 }),
-  body("confirmPassord", "pls provide confirmpasword must be 8 digits")
+  body("confirmPassword", "pls provide confirmpasword must be 8 digits")
     .trim()
     .notEmpty()
     .isLength({ min: 8 }),
@@ -836,7 +836,6 @@ export const changePassword = [
     const userId = req.userId; 
 
     const user = await getUserById(userId!);
-
     checkUserIfNotExits(user);
 
     if(newPassword !== confirmPassword){
@@ -869,9 +868,10 @@ export const changePassword = [
 
     await updateUser(user!.id, userData);
 
-    res.status(201).json({
+    res.status(200).json({
       message: "Password changed successfully",
       // userId: user!.id,
+      phone: user!.phone,
     });
   },
 ];

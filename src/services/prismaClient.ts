@@ -1,7 +1,12 @@
-import { Image, Post, User } from "../../generated/prisma/client";
-import { PrismaClient } from "../../generated/prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { Image, Post, User,PrismaClient } from "../../generated/prisma/client";
 
-export const prisma = new PrismaClient().$extends({
+
+const connectionString = `${process.env.DATABASE_URL}`;
+
+const adapter = new PrismaPg({ connectionString });
+
+export const prisma = new PrismaClient({adapter}).$extends({
   result: {
     user: {
       fullName: {
